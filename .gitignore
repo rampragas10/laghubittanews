@@ -90,3 +90,6 @@ temp/
 dist/
 build/
 scripts/
+
+/public/uploads/*
+!/public/uploads/.gitkeep

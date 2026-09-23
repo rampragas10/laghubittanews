@@ -10,8 +10,10 @@
     "seed": "node scripts/seed-admin.mjs"
   },
   "dependencies": {
+    "@ckeditor/ckeditor5-react": "^11.2.0",
     "@tailwindcss/postcss": "^4.3.3",
     "bcryptjs": "^3.0.2",
+    "ckeditor5": "^48.5.2",
     "dotenv": "^18.0.2",
     "jose": "^6.0.10",
     "mongoose": "^8.18.0",
