@@ -1,0 +1,20 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@400;600;700&display=swap");
+@import "tailwindcss";
+
+:root {
+  --primary: #005b37;
+  --secondary: #006d36;
+  --surface: #f8f9ff;
+  --ink: #121c2a;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--surface); color: var(--ink); font-family: "Noto Sans", sans-serif; }
+h1,h2,h3,h4 { font-family: "Noto Serif", serif; }
+button, input, textarea, select { font: inherit; }
+.prose-news { line-height: 1.9; font-size: 1.06rem; }
+.prose-news p { margin: 0 0 1.1rem; }
+.prose-news img { width: 100%; border-radius: 12px; margin: 1.25rem 0; }
+.prose-news h2,.prose-news h3 { margin: 1.5rem 0 .75rem; }
+.prose-news a { color: var(--primary); text-decoration: underline; }
