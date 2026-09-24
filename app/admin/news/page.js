@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 
 import AdminShell from "@/components/admin/AdminShell";
@@ -33,6 +34,76 @@ function getStatusClass(status) {
   }
 }
 
+/**
+ * Normalize image URL.
+ *
+ * Supports:
+ *
+ * New format:
+ * {
+ *   url: "https://...",
+ *   alt: "..."
+ * }
+ *
+ * Old format:
+ * "https://..."
+ *
+ * Also supports local paths.
+ */
+function getImageUrl(image) {
+  if (!image) return null;
+
+  // New image object format
+  if (typeof image === "object") {
+    image = image?.url;
+  }
+
+  // Nothing usable
+  if (!image || typeof image !== "string") {
+    return null;
+  }
+
+  const value = image.trim();
+
+  if (!value) return null;
+
+  // Absolute URL
+  if (
+    value.startsWith("http://") ||
+    value.startsWith("https://")
+  ) {
+    return value;
+  }
+
+  // Local public file
+  if (value.startsWith("/")) {
+    return value;
+  }
+
+  return `/${value}`;
+}
+
+/**
+ * Get image alt text.
+ *
+ * Supports both the new image object and old imageAlt field.
+ */
+function getImageAlt(item) {
+  if (
+    item.coverImage &&
+    typeof item.coverImage === "object" &&
+    item.coverImage.alt
+  ) {
+    return item.coverImage.alt;
+  }
+
+  if (item.imageAlt) {
+    return item.imageAlt;
+  }
+
+  return item.title || "News image";
+}
+
 export default async function AdminNewsPage() {
   await connectDB();
 
@@ -48,10 +119,6 @@ export default async function AdminNewsPage() {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            {/* <h1 className="text-2xl font-bold text-gray-900">
-              News
-            </h1> */}
-
             <p className="mt-1 text-sm text-gray-500">
               Manage all your news articles.
             </p>
@@ -86,7 +153,9 @@ export default async function AdminNewsPage() {
         ) : (
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
 
-            {/* Desktop */}
+            {/* =====================================================
+                DESKTOP
+            ====================================================== */}
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
 
@@ -95,10 +164,6 @@ export default async function AdminNewsPage() {
                     <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                       News
                     </th>
-
-                    {/* <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      Category
-                    </th> */}
 
                     <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                       Status
@@ -121,8 +186,13 @@ export default async function AdminNewsPage() {
                 <tbody className="divide-y divide-gray-100">
                   {news.map((item) => {
                     const id = item._id.toString();
-                    const isArchived =
-                      item.status === "archived";
+                    const isArchived = item.status === "archived";
+
+                    const imageUrl = getImageUrl(
+                      item.coverImage
+                    );
+
+                    const imageAlt = getImageAlt(item);
 
                     return (
                       <tr
@@ -138,37 +208,29 @@ export default async function AdminNewsPage() {
                         <td className="max-w-md px-5 py-5">
                           <div className="flex items-start gap-4">
 
-                            {item.coverImage ? (
+                            {/* Image */}
+                            {imageUrl ? (
                               <img
-                                src={item.coverImage}
-                                alt={
-                                  item.imageAlt ||
-                                  item.title ||
-                                  "News image"
-                                }
+                                src={imageUrl}
+                                alt={imageAlt}
                                 className={
                                   isArchived
-                                    ? "h-16 w-24 rounded-lg object-cover opacity-50 grayscale"
-                                    : "h-16 w-24 rounded-lg object-cover"
+                                    ? "h-16 w-24 shrink-0 rounded-lg object-cover opacity-50 grayscale"
+                                    : "h-16 w-24 shrink-0 rounded-lg object-cover"
                                 }
+                                loading="lazy"
                               />
                             ) : (
-                              <div className="flex h-16 w-24 items-center justify-center rounded-lg bg-gray-100 text-xs text-gray-400">
+                              <div className="flex h-16 w-24 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-xs text-gray-400">
                                 No image
                               </div>
                             )}
 
+                            {/* Content */}
                             <div className="min-w-0">
-
                               <h2 className="line-clamp-2 font-semibold text-gray-900">
                                 {item.title}
                               </h2>
-
-                              {/* {item.excerpt && (
-                                <p className="mt-1 line-clamp-2 text-sm text-gray-500">
-                                  {item.excerpt}
-                                </p>
-                              )} */}
 
                               <div className="mt-2 flex flex-wrap gap-2">
 
@@ -195,31 +257,8 @@ export default async function AdminNewsPage() {
                           </div>
                         </td>
 
-                        {/* Categories
-                        <td className="px-5 py-5">
-                          <div className="flex max-w-xs flex-wrap gap-2">
-
-                            {item.categories?.length > 0 ? (
-                              item.categories.map((category) => (
-                                <span
-                                  key={category._id.toString()}
-                                  className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-[#005b37]"
-                                >
-                                  {category.name}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-sm text-gray-400">
-                                No category
-                              </span>
-                            )}
-
-                          </div>
-                        </td> */}
-
                         {/* Status */}
                         <td className="px-5 py-5">
-
                           <span
                             className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClass(
                               item.status
@@ -231,12 +270,9 @@ export default async function AdminNewsPage() {
                           {item.status === "scheduled" &&
                             item.scheduledAt && (
                               <p className="mt-2 text-xs text-gray-500">
-                                {formatDate(
-                                  item.scheduledAt
-                                )}
+                                {formatDate(item.scheduledAt)}
                               </p>
                             )}
-
                         </td>
 
                         {/* Views */}
@@ -253,7 +289,6 @@ export default async function AdminNewsPage() {
 
                         {/* Actions */}
                         <td className="px-5 py-5">
-
                           <div className="flex items-center justify-end gap-2">
 
                             <Link
@@ -272,7 +307,6 @@ export default async function AdminNewsPage() {
                             )}
 
                           </div>
-
                         </td>
 
                       </tr>
@@ -283,13 +317,20 @@ export default async function AdminNewsPage() {
               </table>
             </div>
 
-            {/* Mobile */}
+            {/* =====================================================
+                MOBILE
+            ====================================================== */}
             <div className="divide-y divide-gray-100 md:hidden">
 
               {news.map((item) => {
                 const id = item._id.toString();
-                const isArchived =
-                  item.status === "archived";
+                const isArchived = item.status === "archived";
+
+                const imageUrl = getImageUrl(
+                  item.coverImage
+                );
+
+                const imageAlt = getImageAlt(item);
 
                 return (
                   <div
@@ -301,28 +342,28 @@ export default async function AdminNewsPage() {
                     }
                   >
 
+                    {/* Top */}
                     <div className="flex gap-4">
 
-                      {item.coverImage ? (
+                      {/* Image */}
+                      {imageUrl ? (
                         <img
-                          src={item.coverImage}
-                          alt={
-                            item.imageAlt ||
-                            item.title ||
-                            "News image"
-                          }
+                          src={imageUrl}
+                          alt={imageAlt}
                           className={
                             isArchived
-                              ? "h-20 w-28 flex-shrink-0 rounded-lg object-cover opacity-50 grayscale"
-                              : "h-20 w-28 flex-shrink-0 rounded-lg object-cover"
+                              ? "h-20 w-28 shrink-0 rounded-lg object-cover opacity-50 grayscale"
+                              : "h-20 w-28 shrink-0 rounded-lg object-cover"
                           }
+                          loading="lazy"
                         />
                       ) : (
-                        <div className="flex h-20 w-28 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 text-xs text-gray-400">
+                        <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-xs text-gray-400">
                           No image
                         </div>
                       )}
 
+                      {/* Content */}
                       <div className="min-w-0 flex-1">
 
                         <h2 className="line-clamp-2 font-semibold text-gray-900">
@@ -346,7 +387,6 @@ export default async function AdminNewsPage() {
                           )}
 
                         </div>
-
                       </div>
                     </div>
 
@@ -398,7 +438,7 @@ export default async function AdminNewsPage() {
 
                       {(item.status === "published" ||
                         item.status === "archived") && (
-                        <div className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-center text-sm font-medium text-gray-700 transition hover:border-[#005b37] hover:text-[#005b37]">
+                        <div className="flex flex-1 items-center justify-center rounded-lg border border-gray-300 px-4 py-2.5 text-center text-sm font-medium text-gray-700 transition hover:border-[#005b37] hover:text-[#005b37]">
                           <NewsVisibilityButton
                             newsId={id}
                             status={item.status}

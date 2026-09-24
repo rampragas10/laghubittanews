@@ -1,139 +1,161 @@
-
 import { NextResponse } from "next/server";
+import { Readable } from "stream";
 
-import fs from "fs/promises";
-import path from "path";
-import crypto from "crypto";
+import cloudinary from "@/lib/cloudinary";
 
 export const runtime = "nodejs";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+// ============================================
+// CONFIG
+// ============================================
 
-const ALLOWED_TYPES = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/gif": "gif",
-};
+const ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+// ============================================
+// POST /api/admin/upload
+// ============================================
 
 export async function POST(request) {
   try {
     const formData = await request.formData();
 
-    const file = formData.get("upload");
+    const file = formData.get("file");
 
-    if (!file || typeof file === "string") {
+    // ========================================
+    // FILE REQUIRED
+    // ========================================
+
+    if (!file) {
       return NextResponse.json(
         {
           success: false,
-          error: {
-            message: "No image was uploaded.",
-          },
+          message: "Image file is required.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // Validate MIME type
-    if (!ALLOWED_TYPES[file.type]) {
+    // ========================================
+    // FILE TYPE
+    // ========================================
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
         {
           success: false,
-          error: {
-            message:
-              "Invalid image type. Use JPG, PNG, WEBP or GIF.",
-          },
+          message:
+            "Only JPG, PNG and WebP images are allowed.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // Validate file size
+    // ========================================
+    // FILE SIZE
+    // ========================================
+
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         {
           success: false,
-          error: {
-            message:
-              "Image must be smaller than 5MB.",
-          },
+          message:
+            "Image must be smaller than 5MB.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    const extension =
-      ALLOWED_TYPES[file.type];
+    // ========================================
+    // FILE → BUFFER
+    // ========================================
 
-    const filename =
-      `${crypto.randomUUID()}.${extension}`;
+    const bytes = await file.arrayBuffer();
 
-    const uploadDirectory =
-      path.join(
-        process.cwd(),
-        "public",
-        "uploads"
-      );
+    const buffer = Buffer.from(bytes);
 
-    await fs.mkdir(
-      uploadDirectory,
-      {
-        recursive: true,
+    // ========================================
+    // CLOUDINARY UPLOAD
+    // ========================================
+
+    const result = await new Promise(
+      (resolve, reject) => {
+        const uploadStream =
+          cloudinary.uploader.upload_stream(
+            {
+              folder: "laghubitta-news",
+              resource_type: "image",
+            },
+
+            (error, result) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            }
+          );
+
+        Readable.from(buffer).pipe(
+          uploadStream
+        );
       }
     );
 
-    const bytes =
-      await file.arrayBuffer();
-
-    const buffer =
-      Buffer.from(bytes);
-
-    const filePath =
-      path.join(
-        uploadDirectory,
-        filename
-      );
-
-    await fs.writeFile(
-      filePath,
-      buffer
-    );
-
-    const url =
-      `/uploads/${filename}`;
-
-    /*
-     * IMPORTANT:
-     *
-     * CKEditor SimpleUploadAdapter
-     * expects:
-     *
-     * {
-     *   "url": "/uploads/image.jpg"
-     * }
-     *
-     * We can include our own fields too.
-     */
+    // ========================================
+    // RESPONSE
+    // ========================================
 
     return NextResponse.json({
       success: true,
-      url,
+
+      message:
+        "Image uploaded successfully.",
+
+      data: {
+        url: result.secure_url,
+
+        // Returned to frontend.
+        // We don't store it in News currently.
+        publicId: result.public_id,
+
+        width: result.width,
+        height: result.height,
+        format: result.format,
+        bytes: result.bytes,
+      },
     });
   } catch (error) {
     console.error(
-      "IMAGE_UPLOAD_ERROR:",
+      "CLOUDINARY UPLOAD ERROR:",
       error
     );
 
     return NextResponse.json(
       {
         success: false,
-        error: {
-          message:
-            "Image upload failed.",
-        },
+        message: "Failed to upload image.",
+
+        detail:
+          process.env.NODE_ENV ===
+          "development"
+            ? error.message
+            : undefined,
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }

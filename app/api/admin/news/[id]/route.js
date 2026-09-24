@@ -1,354 +1,19 @@
-// // import { connectDB } from "@/lib/db";
-// // import News from "@/models/News";
-// // import { requireAdmin } from "@/lib/admin-api";
-// // import { fail, ok } from "@/lib/api";
-// // import { makeSlug } from "@/lib/slug";
-
-// // export async function PUT(req,{params}){
-// //   if(!await requireAdmin())return fail("Unauthorized",401);
-// //   try{
-// //     const {id}=await params; const body=await req.json(); await connectDB();
-// //     const current=await News.findById(id); if(!current)return fail("News not found",404);
-// //     if(body.title && body.title!==current.title) body.slug=makeSlug(body.title)+"-"+Date.now();
-// //     if(body.status==="published" && current.status!=="published")body.publishedAt=new Date();
-// //     if(body.status!=="published")body.publishedAt=null;
-// //     const updated=await News.findByIdAndUpdate(id,body,{new:true,runValidators:true}).populate("category");
-// //     return ok(updated);
-// //   }catch(e){return fail(e.message,400);}
-// // }
-
-// // export async function DELETE(req,{params}){
-// //   if(!await requireAdmin())return fail("Unauthorized",401);
-// //   await connectDB(); const {id}=await params; const deleted=await News.findByIdAndDelete(id);
-// //   if(!deleted)return fail("News not found",404);
-// //   return ok({deleted:true});
-// // }
-
-
-
-
-
-
-
-
-
-
-// import { NextResponse } from "next/server";
-// import { connectDB } from "@/lib/db";
-// import News from "@/models/News";
-// import fs from "fs/promises";
-// import path from "path";
-// import crypto from "crypto";
-
-// export const runtime = "nodejs";
-
-// const ALLOWED_TYPES = {
-//   "image/jpeg": "jpg",
-//   "image/png": "png",
-//   "image/webp": "webp",
-//   "image/gif": "gif",
-// };
-
-// const MAX_FILE_SIZE = 5 * 1024 * 1024;
-
-// async function saveImage(file) {
-//   if (!file || typeof file === "string") {
-//     return null;
-//   }
-
-//   if (!ALLOWED_TYPES[file.type]) {
-//     throw new Error(
-//       "Invalid image type."
-//     );
-//   }
-
-//   if (file.size > MAX_FILE_SIZE) {
-//     throw new Error(
-//       "Image must be smaller than 5MB."
-//     );
-//   }
-
-//   const extension =
-//     ALLOWED_TYPES[file.type];
-
-//   const filename = `${crypto.randomUUID()}.${extension}`;
-
-//   const directory = path.join(
-//     process.cwd(),
-//     "public",
-//     "uploads"
-//   );
-
-//   await fs.mkdir(directory, {
-//     recursive: true,
-//   });
-
-//   const buffer = Buffer.from(
-//     await file.arrayBuffer()
-//   );
-
-//   await fs.writeFile(
-//     path.join(directory, filename),
-//     buffer
-//   );
-
-//   return `/uploads/${filename}`;
-// }
-
-// function getArray(formData, key) {
-//   return formData
-//     .getAll(key)
-//     .filter(
-//       (value) =>
-//         typeof value === "string" &&
-//         value.trim()
-//     );
-// }
-
-// export async function PUT(request, context) {
-//   try {
-//     await connectDB();
-
-//     const { id } = await context.params;
-
-//     const news =
-//       await News.findById(id);
-
-//     if (!news) {
-//       return NextResponse.json(
-//         {
-//           success: false,
-//           error: {
-//             message:
-//               "News not found.",
-//           },
-//         },
-//         { status: 404 }
-//       );
-//     }
-
-//     const formData =
-//       await request.formData();
-
-//     const title =
-//       formData.get("title");
-
-//     const excerpt =
-//       formData.get("excerpt") || "";
-
-//     const content =
-//       formData.get("content");
-
-//     const coverImage =
-//       formData.get("coverImage") || "";
-
-//     const imageAlt =
-//       formData.get("imageAlt") || "";
-
-//     const categories =
-//       getArray(
-//         formData,
-//         "categories"
-//       );
-
-//     const tags =
-//       getArray(formData, "tags");
-
-//     const status =
-//       formData.get("status") ||
-//       "draft";
-
-//     const featured =
-//       formData.get("featured") ===
-//       "true";
-
-//     const breaking =
-//       formData.get("breaking") ===
-//       "true";
-
-//     const readTime = Number(
-//       formData.get("readTime") || 3
-//     );
-
-//     /*
-//      * Existing images retained
-//      */
-
-//     const existingImagesRaw =
-//       formData.get(
-//         "existingImages"
-//       );
-
-//     let existingImages = [];
-
-//     if (existingImagesRaw) {
-//       try {
-//         existingImages =
-//           JSON.parse(
-//             existingImagesRaw
-//           );
-//       } catch {
-//         existingImages = [];
-//       }
-//     }
-
-//     /*
-//      * New images
-//      */
-
-//     const imageFiles =
-//       formData.getAll("images");
-
-//     const newImages = [];
-
-//     for (const file of imageFiles) {
-//       if (
-//         !file ||
-//         typeof file === "string"
-//       ) {
-//         continue;
-//       }
-
-//       const url =
-//         await saveImage(file);
-
-//       if (url) {
-//         newImages.push({
-//           url,
-//           alt: "",
-//           caption: "",
-//         });
-//       }
-//     }
-
-//     news.title = title;
-//     news.excerpt = excerpt;
-//     news.content = content;
-//     news.coverImage = coverImage;
-//     news.imageAlt = imageAlt;
-//     news.categories = categories;
-//     news.tags = tags;
-//     news.status = status;
-//     news.featured = featured;
-//     news.breaking = breaking;
-//     news.readTime = readTime;
-
-//     news.images = [
-//       ...existingImages,
-//       ...newImages,
-//     ];
-
-//     if (
-//       status === "published" &&
-//       !news.publishedAt
-//     ) {
-//       news.publishedAt = new Date();
-//     }
-
-//     if (
-//       status !== "published"
-//     ) {
-//       news.publishedAt = null;
-//     }
-
-//     await news.save();
-
-//     return NextResponse.json({
-//       success: true,
-//       data: news,
-//     });
-//   } catch (error) {
-//     console.error(
-//       "UPDATE_NEWS_ERROR:",
-//       error
-//     );
-
-//     return NextResponse.json(
-//       {
-//         success: false,
-//         error: {
-//           message:
-//             error.message ||
-//             "Failed to update news.",
-//         },
-//       },
-//       { status: 500 }
-//     );
-//   }
-// }
-
-// export async function DELETE(
-//   request,
-//   context
-// ) {
-//   try {
-//     await connectDB();
-
-//     const { id } = await context.params;
-
-//     const news =
-//       await News.findById(id);
-
-//     if (!news) {
-//       return NextResponse.json(
-//         {
-//           success: false,
-//           error: {
-//             message:
-//               "News not found.",
-//           },
-//         },
-//         { status: 404 }
-//       );
-//     }
-
-//     await news.deleteOne();
-
-//     return NextResponse.json({
-//       success: true,
-//       message: "News deleted.",
-//     });
-//   } catch (error) {
-//     console.error(
-//       "DELETE_NEWS_ERROR:",
-//       error
-//     );
-
-//     return NextResponse.json(
-//       {
-//         success: false,
-//         error: {
-//           message:
-//             "Failed to delete news.",
-//         },
-//       },
-//       { status: 500 }
-//     );
-//   }
-// }
-
-
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import News from "@/models/News";
 import Category from "@/models/Category";
 import slugify from "slugify";
-import fs from "fs/promises";
-import path from "path";
-import crypto from "crypto";
 import mongoose from "mongoose";
+import cloudinary from "@/lib/cloudinary";
 
 export const runtime = "nodejs";
 
-const ALLOWED_TYPES = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/gif": "gif",
-};
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+/*
+ * =========================================
+ * CONFIG
+ * =========================================
+ */
 
 const ALLOWED_STATUSES = [
   "draft",
@@ -359,52 +24,12 @@ const ALLOWED_STATUSES = [
 
 /*
  * =========================================
- * IMAGE UPLOAD
+ * MONGODB ID VALIDATION
  * =========================================
  */
 
-async function saveImage(file) {
-  if (!file || typeof file === "string") {
-    return null;
-  }
-
-  if (!ALLOWED_TYPES[file.type]) {
-    throw new Error(
-      "Invalid image type. Use JPG, PNG, WEBP or GIF."
-    );
-  }
-
-  if (file.size > MAX_FILE_SIZE) {
-    throw new Error(
-      "Image must be smaller than 5MB."
-    );
-  }
-
-  const extension =
-    ALLOWED_TYPES[file.type];
-
-  const filename = `${crypto.randomUUID()}.${extension}`;
-
-  const directory = path.join(
-    process.cwd(),
-    "public",
-    "uploads"
-  );
-
-  await fs.mkdir(directory, {
-    recursive: true,
-  });
-
-  const buffer = Buffer.from(
-    await file.arrayBuffer()
-  );
-
-  await fs.writeFile(
-    path.join(directory, filename),
-    buffer
-  );
-
-  return `/uploads/${filename}`;
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
 }
 
 /*
@@ -426,12 +51,139 @@ function getArray(formData, key) {
 
 /*
  * =========================================
- * MONGODB ID VALIDATION
+ * CLOUDINARY COVER IMAGE PARSER
  * =========================================
  */
 
-function isValidObjectId(id) {
-  return mongoose.Types.ObjectId.isValid(id);
+function parseCoverImage(value) {
+  /*
+   * Default empty Cloudinary image object.
+   */
+
+  const emptyImage = {
+    url: "",
+    publicId: "",
+  };
+
+  if (!value) {
+    return emptyImage;
+  }
+
+  /*
+   * FormData normally sends the object
+   * as a JSON string.
+   *
+   * Example:
+   *
+   * "{\"url\":\"https://...\",\"publicId\":\"...\"}"
+   */
+
+  try {
+    const parsed =
+      typeof value === "string"
+        ? JSON.parse(value)
+        : value;
+
+    /*
+     * Make sure the parsed value is
+     * actually an object.
+     */
+
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed)
+    ) {
+      return emptyImage;
+    }
+
+    return {
+      url:
+        typeof parsed.url === "string"
+          ? parsed.url.trim()
+          : "",
+
+      publicId:
+        typeof parsed.publicId === "string"
+          ? parsed.publicId.trim()
+          : "",
+    };
+  } catch (error) {
+    /*
+     * Backward compatibility for an old
+     * record that may contain a plain URL.
+     */
+
+    if (
+      typeof value === "string" &&
+      value.trim()
+    ) {
+      return {
+        url: value.trim(),
+        publicId: "",
+      };
+    }
+
+    throw new Error(
+      "Invalid cover image data."
+    );
+  }
+}
+
+/*
+ * =========================================
+ * GALLERY IMAGE PARSER
+ * =========================================
+ */
+
+function parseGalleryImages(value) {
+  if (!value) {
+    return [];
+  }
+
+  let parsed;
+
+  try {
+    parsed =
+      typeof value === "string"
+        ? JSON.parse(value)
+        : value;
+  } catch {
+    throw new Error(
+      "Invalid gallery images data."
+    );
+  }
+
+  if (!Array.isArray(parsed)) {
+    return [];
+  }
+
+  return parsed
+    .filter(
+      (image) =>
+        image &&
+        typeof image === "object" &&
+        typeof image.url === "string" &&
+        image.url.trim()
+    )
+    .map((image) => ({
+      url: image.url.trim(),
+
+      publicId:
+        typeof image.publicId === "string"
+          ? image.publicId.trim()
+          : "",
+
+      alt:
+        typeof image.alt === "string"
+          ? image.alt.trim()
+          : "",
+
+      caption:
+        typeof image.caption === "string"
+          ? image.caption.trim()
+          : "",
+    }));
 }
 
 /*
@@ -550,6 +302,87 @@ function parseScheduledAt(value) {
 
 /*
  * =========================================
+ * DELETE CLOUDINARY IMAGE
+ * =========================================
+ */
+
+async function deleteCloudinaryImage(
+  publicId
+) {
+  try {
+    if (
+      !publicId ||
+      typeof publicId !== "string"
+    ) {
+      return;
+    }
+
+    await cloudinary.uploader.destroy(
+      publicId,
+      {
+        resource_type: "image",
+      }
+    );
+
+    console.log(
+      "Cloudinary image deleted:",
+      publicId
+    );
+  } catch (error) {
+    /*
+     * Do not fail the whole news
+     * operation because an image could
+     * not be deleted.
+     */
+
+    console.error(
+      "CLOUDINARY_DELETE_ERROR:",
+      error
+    );
+  }
+}
+
+/*
+ * =========================================
+ * DELETE CLOUDINARY IMAGE IF REPLACED
+ * =========================================
+ */
+
+async function deleteOldCoverImage(
+  oldImage,
+  newImage
+) {
+  const oldPublicId =
+    oldImage?.publicId;
+
+  const newPublicId =
+    newImage?.publicId;
+
+  /*
+   * Nothing to delete.
+   */
+
+  if (!oldPublicId) {
+    return;
+  }
+
+  /*
+   * Same image is still being used.
+   */
+
+  if (
+    oldPublicId === newPublicId
+  ) {
+    return;
+  }
+
+  await deleteCloudinaryImage(
+    oldPublicId
+  );
+}
+
+/*
+ * =========================================
  * GET SINGLE NEWS
  * =========================================
  */
@@ -560,6 +393,10 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+
+    /*
+     * Validate ID.
+     */
 
     if (!isValidObjectId(id)) {
       return NextResponse.json(
@@ -575,6 +412,10 @@ export async function GET(
     }
 
     await connectDB();
+
+    /*
+     * Find article.
+     */
 
     const news =
       await News.findById(id)
@@ -631,7 +472,8 @@ export async function PUT(
     const { id } = await params;
 
     /*
-     * Validate ID before touching MongoDB.
+     * Validate ID before touching
+     * MongoDB.
      */
 
     if (!isValidObjectId(id)) {
@@ -693,10 +535,47 @@ export async function PUT(
         ""
     ).trim();
 
-    const coverImage = String(
-      formData.get("coverImage") ||
-        ""
-    ).trim();
+    /*
+     * =====================================
+     * COVER IMAGE
+     * =====================================
+     *
+     * IMPORTANT:
+     *
+     * NewsForm sends:
+     *
+     * JSON.stringify({
+     *   url,
+     *   publicId
+     * })
+     *
+     * We MUST parse it back into an
+     * object before giving it to Mongoose.
+     */
+
+    const rawCoverImage =
+      formData.get("coverImage");
+
+    let coverImage;
+
+    try {
+      coverImage =
+        parseCoverImage(
+          rawCoverImage
+        );
+    } catch (error) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            message:
+              error.message ||
+              "Invalid cover image data.",
+          },
+        },
+        { status: 400 }
+      );
+    }
 
     const imageAlt = String(
       formData.get("imageAlt") ||
@@ -948,11 +827,6 @@ export async function PUT(
         );
       }
 
-      /*
-       * Scheduled article must not
-       * already have publishedAt.
-       */
-
       publishedAt = null;
     }
 
@@ -964,12 +838,9 @@ export async function PUT(
 
     if (status === "published") {
       /*
-       * If this article was already
-       * published, preserve its original
-       * publication timestamp.
-       *
-       * If it was previously draft/
-       * scheduled, publish it now.
+       * Preserve the original
+       * publication date if already
+       * published.
        */
 
       if (!existingNews.publishedAt) {
@@ -991,8 +862,7 @@ export async function PUT(
 
       /*
        * Keep publishedAt for historical
-       * record if the article was already
-       * published.
+       * record if already published.
        */
 
       if (
@@ -1006,9 +876,6 @@ export async function PUT(
      * =====================================
      * SLUG
      * =====================================
-     *
-     * Only regenerate slug when title
-     * actually changes.
      */
 
     let slug =
@@ -1043,45 +910,17 @@ export async function PUT(
       "string"
     ) {
       try {
-        const parsed =
-          JSON.parse(
+        existingImages =
+          parseGalleryImages(
             existingImagesValue
           );
-
-        if (
-          Array.isArray(parsed)
-        ) {
-          existingImages =
-            parsed
-              .filter(
-                (image) =>
-                  image &&
-                  typeof image.url ===
-                    "string" &&
-                  image.url.trim()
-              )
-              .map(
-                (image) => ({
-                  url: image.url,
-                  alt:
-                    typeof image.alt ===
-                    "string"
-                      ? image.alt
-                      : "",
-                  caption:
-                    typeof image.caption ===
-                    "string"
-                      ? image.caption
-                      : "",
-                })
-              );
-        }
-      } catch (parseError) {
+      } catch (error) {
         return NextResponse.json(
           {
             success: false,
             error: {
               message:
+                error.message ||
                 "Invalid existing images data.",
             },
           },
@@ -1090,19 +929,54 @@ export async function PUT(
       }
     } else {
       /*
-       * If the frontend does not send
-       * existingImages, preserve old
-       * images instead of deleting them.
+       * Preserve old gallery if the
+       * frontend doesn't send the field.
        */
 
       existingImages =
-        existingNews.images || [];
+        Array.isArray(
+          existingNews.images
+        )
+          ? existingNews.images
+              .map(
+                (image) => ({
+                  url:
+                    image?.url ||
+                    "",
+
+                  publicId:
+                    image?.publicId ||
+                    "",
+
+                  alt:
+                    image?.alt ||
+                    "",
+
+                  caption:
+                    image?.caption ||
+                    "",
+                })
+              )
+              .filter(
+                (image) =>
+                  image.url
+              )
+          : [];
     }
 
     /*
      * =====================================
      * NEW GALLERY IMAGES
      * =====================================
+     *
+     * New NewsForm uploads gallery
+     * images directly to Cloudinary.
+     *
+     * Therefore there should normally
+     * be NO image file here.
+     *
+     * We still preserve compatibility
+     * with an actual File if one is sent.
      */
 
     const imageFiles =
@@ -1112,34 +986,50 @@ export async function PUT(
 
     const uploadedImages = [];
 
+    /*
+     * The new Cloudinary frontend sends
+     * JSON gallery objects rather than
+     * raw files.
+     *
+     * Therefore only process actual
+     * File objects here.
+     */
+
     for (
       const file of imageFiles
     ) {
       if (
         !file ||
-        typeof file ===
-          "string"
+        typeof file === "string"
       ) {
         continue;
       }
 
-      const url =
-        await saveImage(
-          file
-        );
+      /*
+       * This route is now Cloudinary-based.
+       *
+       * Do NOT save files to /public/uploads.
+       *
+       * If a raw file reaches this route,
+       * reject it rather than silently
+       * storing it locally.
+       */
 
-      if (url) {
-        uploadedImages.push({
-          url,
-          alt: "",
-          caption: "",
-        });
-      }
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            message:
+              "Gallery images must be uploaded through the Cloudinary upload endpoint.",
+          },
+        },
+        { status: 400 }
+      );
     }
 
     /*
      * =====================================
-     * COMBINE IMAGES
+     * COMBINE GALLERY
      * =====================================
      */
 
@@ -1150,7 +1040,21 @@ export async function PUT(
 
     /*
      * =====================================
-     * UPDATE
+     * SAVE NEW COVER IMAGE
+     * =====================================
+     */
+
+    /*
+     * Keep a copy of the old image
+     * before replacing it.
+     */
+
+    const oldCoverImage =
+      existingNews.coverImage;
+
+    /*
+     * =====================================
+     * UPDATE DOCUMENT
      * =====================================
      */
 
@@ -1165,6 +1069,13 @@ export async function PUT(
 
     existingNews.content =
       content;
+
+    /*
+     * IMPORTANT:
+     *
+     * coverImage is now an OBJECT,
+     * not a string.
+     */
 
     existingNews.coverImage =
       coverImage;
@@ -1200,10 +1111,26 @@ export async function PUT(
       images;
 
     /*
-     * Save.
+     * =====================================
+     * SAVE
+     * =====================================
      */
 
     await existingNews.save();
+
+    /*
+     * =====================================
+     * DELETE OLD COVER FROM CLOUDINARY
+     * =====================================
+     *
+     * Only after MongoDB successfully
+     * saves the new document.
+     */
+
+    await deleteOldCoverImage(
+      oldCoverImage,
+      coverImage
+    );
 
     /*
      * =====================================
@@ -1383,13 +1310,17 @@ export async function DELETE(
 
     /*
      * =====================================
-     * DELETE COVER IMAGE
+     * DELETE COVER FROM CLOUDINARY
      * =====================================
      */
 
-    await deleteLocalImage(
-      news.coverImage
-    );
+    if (
+      news.coverImage?.publicId
+    ) {
+      await deleteCloudinaryImage(
+        news.coverImage.publicId
+      );
+    }
 
     /*
      * =====================================
@@ -1403,11 +1334,21 @@ export async function DELETE(
       for (
         const image of news.images
       ) {
-        await deleteLocalImage(
-          image?.url
-        );
+        if (
+          image?.publicId
+        ) {
+          await deleteCloudinaryImage(
+            image.publicId
+          );
+        }
       }
     }
+
+    /*
+     * =====================================
+     * RESPONSE
+     * =====================================
+     */
 
     return NextResponse.json({
       success: true,
@@ -1430,73 +1371,5 @@ export async function DELETE(
       },
       { status: 500 }
     );
-  }
-}
-
-/*
- * =========================================
- * DELETE LOCAL IMAGE
- * =========================================
- */
-
-async function deleteLocalImage(
-  imageUrl
-) {
-  try {
-    /*
-     * Only delete local uploads.
-     *
-     * This prevents accidentally
-     * deleting external URLs.
-     */
-
-    if (
-      !imageUrl ||
-      typeof imageUrl !==
-        "string"
-    ) {
-      return;
-    }
-
-    if (
-      !imageUrl.startsWith(
-        "/uploads/"
-      )
-    ) {
-      return;
-    }
-
-    const filename =
-      path.basename(
-        imageUrl
-      );
-
-    const filePath =
-      path.join(
-        process.cwd(),
-        "public",
-        "uploads",
-        filename
-      );
-
-    await fs.unlink(
-      filePath
-    );
-  } catch (error) {
-    /*
-     * If image was already deleted,
-     * don't fail the whole article
-     * deletion.
-     */
-
-    if (
-      error?.code !==
-      "ENOENT"
-    ) {
-      console.error(
-        "DELETE_IMAGE_ERROR:",
-        error
-      );
-    }
   }
 }

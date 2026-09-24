@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 const NewsSchema = new mongoose.Schema(
@@ -27,16 +26,27 @@ const NewsSchema = new mongoose.Schema(
       required: true,
     },
 
+    // ============================================
+    // COVER IMAGE
+    // ============================================
+
     coverImage: {
-      type: String,
-      default: "",
+      url: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+
+      alt: {
+        type: String,
+        default: "",
+        trim: true,
+      },
     },
 
-    imageAlt: {
-      type: String,
-      default: "",
-      trim: true,
-    },
+    // ============================================
+    // GALLERY IMAGES
+    // ============================================
 
     images: [
       {
@@ -57,7 +67,10 @@ const NewsSchema = new mongoose.Schema(
       },
     ],
 
-    // Multiple categories
+    // ============================================
+    // CATEGORIES
+    // ============================================
+
     categories: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -66,12 +79,20 @@ const NewsSchema = new mongoose.Schema(
       },
     ],
 
+    // ============================================
+    // TAGS
+    // ============================================
+
     tags: [
       {
         type: String,
         trim: true,
       },
     ],
+
+    // ============================================
+    // STATUS
+    // ============================================
 
     status: {
       type: String,
@@ -84,6 +105,10 @@ const NewsSchema = new mongoose.Schema(
       default: "draft",
     },
 
+    // ============================================
+    // FLAGS
+    // ============================================
+
     featured: {
       type: Boolean,
       default: false,
@@ -94,17 +119,29 @@ const NewsSchema = new mongoose.Schema(
       default: false,
     },
 
+    // ============================================
+    // READ TIME
+    // ============================================
+
     readTime: {
       type: Number,
       default: 3,
       min: 1,
     },
 
+    // ============================================
+    // VIEWS
+    // ============================================
+
     views: {
       type: Number,
       default: 0,
       min: 0,
     },
+
+    // ============================================
+    // SCHEDULE
+    // ============================================
 
     scheduledAt: {
       type: Date,
@@ -116,18 +153,21 @@ const NewsSchema = new mongoose.Schema(
       default: null,
     },
   },
+
   {
     timestamps: true,
   }
 );
 
-// Important for scheduled publishing
+// ============================================
+// INDEXES
+// ============================================
+
 NewsSchema.index({
   status: 1,
   scheduledAt: 1,
 });
 
-// Useful for category pages
 NewsSchema.index({
   categories: 1,
   status: 1,

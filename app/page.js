@@ -1,5 +1,4 @@
 
-
 import Link from "next/link";
 
 import Header from "@/components/Header";
@@ -28,6 +27,7 @@ export default async function HomePage() {
         ====================================================== */}
         {lead && (
           <article className="overflow-hidden rounded-xl bg-white p-4 shadow-sm md:p-6">
+
             {/* Labels */}
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-[#005b37] px-3 py-1 text-xs font-bold text-white">
@@ -48,10 +48,10 @@ export default async function HomePage() {
 
             {/* Cover Image */}
             <div className="mt-5 aspect-[21/9] overflow-hidden rounded-lg bg-gray-100">
-              {lead.coverImage ? (
+              {lead.coverImage?.url ? (
                 <img
-                  src={lead.coverImage}
-                  alt={lead.imageAlt || lead.title}
+                  src={lead.coverImage.url}
+                  alt={lead.coverImage.alt || lead.title}
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -137,241 +137,270 @@ export default async function HomePage() {
             OPINION / ENTREPRENEURSHIP / PHOTO STORIES
         ====================================================== */}
         <section className="rounded-2xl bg-gradient-to-br from-[#eff4ff] via-white to-[#f3fff7] p-4 md:p-6 lg:p-8">
-  {/* Section Header */}
-  <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-    <div>
-      <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#005b37]">
-        विशेष सामग्री
-      </p>
 
-      <h2 className="mt-1 text-2xl font-extrabold text-[#17202a] md:text-3xl">
-        विचार, उद्यमशीलता र फोटो कथा
-      </h2>
+          {/* Section Header */}
+          <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#005b37]">
+                विशेष सामग्री
+              </p>
 
-      <p className="mt-1 text-sm text-gray-500">
-        विचार, व्यवसाय र दृश्य कथाहरूबाट विशेष सामग्री
-      </p>
-    </div>
-  </div>
+              <h2 className="mt-1 text-2xl font-extrabold text-[#17202a] md:text-3xl">
+                विचार, उद्यमशीलता र फोटो कथा
+              </h2>
 
-  {/* Three Columns */}
-  <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-
-    {/* =====================================================
-        OPINION
-    ====================================================== */}
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
-      <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#005b37] text-sm font-bold text-white">
-            वि
-          </span>
-
-          <div>
-            <h3 className="font-bold text-[#17202a]">
-              विचार
-            </h3>
-
-            <p className="text-xs text-gray-500">
-              विचार तथा सम्पादकीय
-            </p>
+              <p className="mt-1 text-sm text-gray-500">
+                विचार, व्यवसाय र दृश्य कथाहरूबाट विशेष सामग्री
+              </p>
+            </div>
           </div>
-        </div>
 
-        <a
-          href="/category/opinion-and-editorial"
-          className="text-xs font-bold text-[#005b37] hover:underline"
-        >
-          सबै →
-        </a>
-      </div>
+          {/* Three Columns */}
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
 
-      <div className="p-4">
-        {data.opinion?.length > 0 ? (
-          <div className="space-y-4">
-            {data.opinion.slice(0, 3).map((news, index) => (
-              <article
-                key={news._id}
-                className={`group ${
-                  index !== 0 ? "border-t border-gray-100 pt-4" : ""
-                }`}
-              >
-                <a href={`/news/${news.slug}`} className="block">
-                  {index === 0 && news.coverImage && (
-                    <div className="mb-3 aspect-[16/9] overflow-hidden rounded-xl bg-gray-100">
-                      <img
-                        src={news.coverImage}
-                        alt={news.imageAlt || news.title}
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                  )}
+            {/* =====================================================
+                OPINION
+            ====================================================== */}
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
 
-                  <h4 className="line-clamp-2 font-bold leading-6 text-[#17202a] transition group-hover:text-[#005b37]">
-                    {news.title}
-                  </h4>
+              <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#005b37] text-sm font-bold text-white">
+                    वि
+                  </span>
 
-                  {index === 0 && news.excerpt && (
-                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-500">
-                      {news.excerpt}
+                  <div>
+                    <h3 className="font-bold text-[#17202a]">
+                      विचार
+                    </h3>
+
+                    <p className="text-xs text-gray-500">
+                      विचार तथा सम्पादकीय
                     </p>
-                  )}
-                </a>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="py-8 text-center text-sm text-gray-500">
-            समाचार उपलब्ध छैन।
-          </p>
-        )}
-      </div>
-    </div>
+                  </div>
+                </div>
 
-    {/* =====================================================
-        ENTREPRENEURSHIP
-    ====================================================== */}
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
-      <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#006d36] text-sm font-bold text-white">
-            उ
-          </span>
+                <Link
+                  href="/category/opinion-and-editorial"
+                  className="text-xs font-bold text-[#005b37] hover:underline"
+                >
+                  सबै →
+                </Link>
+              </div>
 
-          <div>
-            <h3 className="font-bold text-[#17202a]">
-              उद्यमशीलता
-            </h3>
+              <div className="p-4">
+                {data.opinion?.length > 0 ? (
+                  <div className="space-y-4">
+                    {data.opinion.slice(0, 3).map((news, index) => (
+                      <article
+                        key={news._id}
+                        className={`group ${
+                          index !== 0
+                            ? "border-t border-gray-100 pt-4"
+                            : ""
+                        }`}
+                      >
+                        <Link
+                          href={`/news/${news.slug}`}
+                          className="block"
+                        >
+                          {index === 0 && news.coverImage?.url && (
+                            <div className="mb-3 aspect-[16/9] overflow-hidden rounded-xl bg-gray-100">
+                              <img
+                                src={news.coverImage.url}
+                                alt={
+                                  news.coverImage.alt ||
+                                  news.title
+                                }
+                                className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                              />
+                            </div>
+                          )}
 
-            <p className="text-xs text-gray-500">
-              व्यवसाय तथा उद्यम
-            </p>
-          </div>
-        </div>
+                          <h4 className="line-clamp-2 font-bold leading-6 text-[#17202a] transition group-hover:text-[#005b37]">
+                            {news.title}
+                          </h4>
 
-        <a
-          href="/category/entrepreneurship"
-          className="text-xs font-bold text-[#005b37] hover:underline"
-        >
-          सबै →
-        </a>
-      </div>
+                          {index === 0 && news.excerpt && (
+                            <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-500">
+                              {news.excerpt}
+                            </p>
+                          )}
+                        </Link>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="py-8 text-center text-sm text-gray-500">
+                    समाचार उपलब्ध छैन।
+                  </p>
+                )}
+              </div>
+            </div>
 
-      <div className="p-4">
-        {data.entrepreneurship?.length > 0 ? (
-          <div className="space-y-4">
-            {data.entrepreneurship.slice(0, 3).map((news, index) => (
-              <article
-                key={news._id}
-                className={`group ${
-                  index !== 0 ? "border-t border-gray-100 pt-4" : ""
-                }`}
-              >
-                <a href={`/news/${news.slug}`} className="block">
-                  {index === 0 && news.coverImage && (
-                    <div className="mb-3 aspect-[16/9] overflow-hidden rounded-xl bg-gray-100">
-                      <img
-                        src={news.coverImage}
-                        alt={news.imageAlt || news.title}
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                  )}
+            {/* =====================================================
+                ENTREPRENEURSHIP
+            ====================================================== */}
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
 
-                  <h4 className="line-clamp-2 font-bold leading-6 text-[#17202a] transition group-hover:text-[#005b37]">
-                    {news.title}
-                  </h4>
+              <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#006d36] text-sm font-bold text-white">
+                    उ
+                  </span>
 
-                  {index === 0 && news.excerpt && (
-                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-500">
-                      {news.excerpt}
+                  <div>
+                    <h3 className="font-bold text-[#17202a]">
+                      उद्यमशीलता
+                    </h3>
+
+                    <p className="text-xs text-gray-500">
+                      व्यवसाय तथा उद्यम
                     </p>
-                  )}
-                </a>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="py-8 text-center text-sm text-gray-500">
-            समाचार उपलब्ध छैन।
-          </p>
-        )}
-      </div>
-    </div>
+                  </div>
+                </div>
 
-    {/* =====================================================
-        PHOTO STORIES
-    ====================================================== */}
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
-      <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#17202a] text-sm font-bold text-white">
-            फो
-          </span>
+                <Link
+                  href="/category/entrepreneurship"
+                  className="text-xs font-bold text-[#005b37] hover:underline"
+                >
+                  सबै →
+                </Link>
+              </div>
 
-          <div>
-            <h3 className="font-bold text-[#17202a]">
-              फोटो कथा
-            </h3>
+              <div className="p-4">
+                {data.entrepreneurship?.length > 0 ? (
+                  <div className="space-y-4">
+                    {data.entrepreneurship
+                      .slice(0, 3)
+                      .map((news, index) => (
+                        <article
+                          key={news._id}
+                          className={`group ${
+                            index !== 0
+                              ? "border-t border-gray-100 pt-4"
+                              : ""
+                          }`}
+                        >
+                          <Link
+                            href={`/news/${news.slug}`}
+                            className="block"
+                          >
+                            {index === 0 && news.coverImage?.url && (
+                              <div className="mb-3 aspect-[16/9] overflow-hidden rounded-xl bg-gray-100">
+                                <img
+                                  src={news.coverImage.url}
+                                  alt={
+                                    news.coverImage.alt ||
+                                    news.title
+                                  }
+                                  className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                                />
+                              </div>
+                            )}
 
-            <p className="text-xs text-gray-500">
-              दृश्य कथा तथा तस्वीर
-            </p>
-          </div>
-        </div>
+                            <h4 className="line-clamp-2 font-bold leading-6 text-[#17202a] transition group-hover:text-[#005b37]">
+                              {news.title}
+                            </h4>
 
-        <a
-          href="/category/photo-stories"
-          className="text-xs font-bold text-[#005b37] hover:underline"
-        >
-          सबै →
-        </a>
-      </div>
+                            {index === 0 && news.excerpt && (
+                              <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-500">
+                                {news.excerpt}
+                              </p>
+                            )}
+                          </Link>
+                        </article>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="py-8 text-center text-sm text-gray-500">
+                    समाचार उपलब्ध छैन।
+                  </p>
+                )}
+              </div>
+            </div>
 
-      <div className="p-4">
-        {data.photo?.length > 0 ? (
-          <div className="space-y-4">
-            {data.photo.slice(0, 3).map((news, index) => (
-              <article
-                key={news._id}
-                className={`group ${
-                  index !== 0 ? "border-t border-gray-100 pt-4" : ""
-                }`}
-              >
-                <a href={`/news/${news.slug}`} className="block">
-                  {index === 0 && news.coverImage && (
-                    <div className="mb-3 aspect-[16/9] overflow-hidden rounded-xl bg-gray-100">
-                      <img
-                        src={news.coverImage}
-                        alt={news.imageAlt || news.title}
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                  )}
+            {/* =====================================================
+                PHOTO STORIES
+            ====================================================== */}
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
 
-                  <h4 className="line-clamp-2 font-bold leading-6 text-[#17202a] transition group-hover:text-[#005b37]">
-                    {news.title}
-                  </h4>
+              <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#17202a] text-sm font-bold text-white">
+                    फो
+                  </span>
 
-                  {index === 0 && news.excerpt && (
-                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-500">
-                      {news.excerpt}
+                  <div>
+                    <h3 className="font-bold text-[#17202a]">
+                      फोटो कथा
+                    </h3>
+
+                    <p className="text-xs text-gray-500">
+                      दृश्य कथा तथा तस्वीर
                     </p>
-                  )}
-                </a>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="py-8 text-center text-sm text-gray-500">
-            फोटो कथा उपलब्ध छैन।
-          </p>
-        )}
-      </div>
-    </div>
+                  </div>
+                </div>
 
-  </div>
-</section>
+                <Link
+                  href="/category/photo-stories"
+                  className="text-xs font-bold text-[#005b37] hover:underline"
+                >
+                  सबै →
+                </Link>
+              </div>
+
+              <div className="p-4">
+                {data.photo?.length > 0 ? (
+                  <div className="space-y-4">
+                    {data.photo.slice(0, 3).map((news, index) => (
+                      <article
+                        key={news._id}
+                        className={`group ${
+                          index !== 0
+                            ? "border-t border-gray-100 pt-4"
+                            : ""
+                        }`}
+                      >
+                        <Link
+                          href={`/news/${news.slug}`}
+                          className="block"
+                        >
+                          {index === 0 && news.coverImage?.url && (
+                            <div className="mb-3 aspect-[16/9] overflow-hidden rounded-xl bg-gray-100">
+                              <img
+                                src={news.coverImage.url}
+                                alt={
+                                  news.coverImage.alt ||
+                                  news.title
+                                }
+                                className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                              />
+                            </div>
+                          )}
+
+                          <h4 className="line-clamp-2 font-bold leading-6 text-[#17202a] transition group-hover:text-[#005b37]">
+                            {news.title}
+                          </h4>
+
+                          {index === 0 && news.excerpt && (
+                            <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-500">
+                              {news.excerpt}
+                            </p>
+                          )}
+                        </Link>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="py-8 text-center text-sm text-gray-500">
+                    फोटो कथा उपलब्ध छैन।
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* =====================================================
             NOTICES
