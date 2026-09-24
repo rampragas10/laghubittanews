@@ -38,7 +38,7 @@ function serializeNews(news) {
     featured: Boolean(news.featured),
     breaking: Boolean(news.breaking),
 
-    readTime: news.readTime || 3,
+    readTime: news.readTime || 1,
     views: news.views || 0,
 
     publishedAt: news.publishedAt

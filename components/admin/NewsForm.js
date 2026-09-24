@@ -1186,13 +1186,13 @@ selectedCategories.forEach((categoryId) => {
           </h2>
 
           <p className="mb-6 text-sm text-gray-500">
-            Archive or permanently delete
+            Permanently delete
             this article.
           </p>
 
           <div className="flex flex-wrap gap-4">
 
-            {/* Archive */}
+            {/* Archive
 
             <button
               type="button"
@@ -1209,7 +1209,7 @@ selectedCategories.forEach((categoryId) => {
               "archived"
                 ? "Archiving..."
                 : "Archive"}
-            </button>
+            </button> */}
 
             {/* Delete */}
 
