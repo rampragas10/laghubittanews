@@ -11,7 +11,6 @@ const nav = [
   ["अन्तरवार्ता", "/category/interviews"],
   ["फोटो कथा", "/category/photo-stories"],
   ["राष्ट्रिय नीति", "/category/national-policy"],
-  ["सूचना / करियर", "/category/notices-and-vacancy"]
 ];
 
 export default function Header() {

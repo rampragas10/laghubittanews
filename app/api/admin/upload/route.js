@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 import { Readable } from "stream";
 
@@ -5,90 +6,62 @@ import cloudinary from "@/lib/cloudinary";
 
 export const runtime = "nodejs";
 
-// ============================================
-// CONFIG
-// ============================================
-
 const ALLOWED_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
 ];
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-
-// ============================================
-// POST /api/admin/upload
-// ============================================
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export async function POST(request) {
   try {
     const formData = await request.formData();
-
     const file = formData.get("file");
 
-    // ========================================
-    // FILE REQUIRED
-    // ========================================
-
+    // =========================
+    // Validate file
+    // =========================
     if (!file) {
       return NextResponse.json(
         {
           success: false,
-          message: "Image file is required.",
+          message: "Image file is required",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
-
-    // ========================================
-    // FILE TYPE
-    // ========================================
 
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "Only JPG, PNG and WebP images are allowed.",
+            "Only JPG, PNG and WebP images are allowed",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
-
-    // ========================================
-    // FILE SIZE
-    // ========================================
 
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Image must be smaller than 5MB.",
+          message: "Image must be smaller than 5MB",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
 
-    // ========================================
-    // FILE → BUFFER
-    // ========================================
-
+    // =========================
+    // Convert file to Buffer
+    // =========================
     const bytes = await file.arrayBuffer();
-
     const buffer = Buffer.from(bytes);
 
-    // ========================================
-    // CLOUDINARY UPLOAD
-    // ========================================
-
+    // =========================
+    // Upload to Cloudinary
+    // =========================
     const result = await new Promise(
       (resolve, reject) => {
         const uploadStream =
@@ -97,39 +70,39 @@ export async function POST(request) {
               folder: "laghubitta-news",
               resource_type: "image",
             },
-
-            (error, result) => {
+            (error, uploadResult) => {
               if (error) {
                 reject(error);
               } else {
-                resolve(result);
+                resolve(uploadResult);
               }
             }
           );
 
-        Readable.from(buffer).pipe(
-          uploadStream
-        );
+        Readable.from(buffer).pipe(uploadStream);
       }
     );
 
-    // ========================================
-    // RESPONSE
-    // ========================================
-
+    // =========================
+    // Response
+    //
+    // IMPORTANT:
+    // CKEditor SimpleUploadAdapter
+    // expects `url` at the top level.
+    //
+    // NewsForm can use `data.url`.
+    // =========================
     return NextResponse.json({
       success: true,
+      message: "Image uploaded successfully",
 
-      message:
-        "Image uploaded successfully.",
+      // CKEditor
+      url: result.secure_url,
 
+      // NewsForm / other clients
       data: {
         url: result.secure_url,
-
-        // Returned to frontend.
-        // We don't store it in News currently.
         publicId: result.public_id,
-
         width: result.width,
         height: result.height,
         format: result.format,
@@ -138,24 +111,16 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error(
-      "CLOUDINARY UPLOAD ERROR:",
+      "Cloudinary upload error:",
       error
     );
 
     return NextResponse.json(
       {
         success: false,
-        message: "Failed to upload image.",
-
-        detail:
-          process.env.NODE_ENV ===
-          "development"
-            ? error.message
-            : undefined,
+        message: "Failed to upload image",
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }

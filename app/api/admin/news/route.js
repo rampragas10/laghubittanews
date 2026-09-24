@@ -588,6 +588,617 @@ export async function GET(
  * =========================================
  */
 
+
+
+
+/*
+ * =========================================
+ * CREATE NEWS
+ * =========================================
+ */
+
+export async function POST(request) {
+  try {
+    await connectDB();
+
+    /*
+     * =====================================
+     * READ FORM DATA
+     * =====================================
+     */
+
+    const formData = await request.formData();
+
+    /*
+     * =====================================
+     * BASIC FIELDS
+     * =====================================
+     */
+
+    const title = String(
+      formData.get("title") || ""
+    ).trim();
+
+    const excerpt = String(
+      formData.get("excerpt") || ""
+    ).trim();
+
+    const content = String(
+      formData.get("content") || ""
+    ).trim();
+
+    /*
+     * =====================================
+     * COVER IMAGE
+     * =====================================
+     */
+
+    const rawCoverImage =
+      formData.get("coverImage");
+
+    const coverImage =
+      parseCoverImage(rawCoverImage);
+
+    /*
+     * =====================================
+     * CATEGORIES
+     * =====================================
+     *
+     * NewsForm sends:
+     *
+     * formData.append("categories", categoryId)
+     *
+     */
+
+    const categories = getArray(
+      formData,
+      "categories"
+    );
+
+    /*
+     * =====================================
+     * TAGS
+     * =====================================
+     */
+
+    let tags = [];
+
+    const rawTags =
+      formData.get("tags");
+
+    if (
+      typeof rawTags === "string"
+    ) {
+      const parsedTags =
+        parseJSON(rawTags, null);
+
+      if (Array.isArray(parsedTags)) {
+        tags = parsedTags
+          .map((tag) =>
+            String(tag).trim()
+          )
+          .filter(Boolean);
+      } else {
+        tags = rawTags
+          .split(",")
+          .map((tag) =>
+            tag.trim()
+          )
+          .filter(Boolean);
+      }
+    }
+
+    /*
+     * =====================================
+     * STATUS
+     * =====================================
+     */
+
+    const status = String(
+      formData.get("status") ||
+        "draft"
+    ).trim();
+
+    if (
+      !ALLOWED_STATUSES.includes(status)
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "INVALID_STATUS",
+            message:
+              "Invalid news status.",
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    /*
+     * =====================================
+     * FEATURED / BREAKING
+     * =====================================
+     */
+
+    const featured =
+      parseBoolean(
+        formData.get("featured")
+      );
+
+    const breaking =
+      parseBoolean(
+        formData.get("breaking")
+      );
+
+    /*
+     * =====================================
+     * READ TIME
+     * =====================================
+     */
+
+    const readTimeValue =
+      Number(
+        formData.get("readTime") || 3
+      );
+
+    const readTime =
+      Number.isFinite(
+        readTimeValue
+      ) &&
+      readTimeValue > 0
+        ? Math.round(
+            readTimeValue
+          )
+        : 3;
+
+    /*
+     * =====================================
+     * BASIC VALIDATION
+     * =====================================
+     */
+
+    if (!title) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "TITLE_REQUIRED",
+            message:
+              "Title is required.",
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!content) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "CONTENT_REQUIRED",
+            message:
+              "Content is required.",
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!categories.length) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "CATEGORY_REQUIRED",
+            message:
+              "At least one category is required.",
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    /*
+     * =====================================
+     * VALIDATE CATEGORIES
+     * =====================================
+     */
+
+    const categoryResult =
+      await validateCategories(
+        categories
+      );
+
+    if (!categoryResult.valid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "INVALID_CATEGORIES",
+            message:
+              "One or more selected categories are invalid or inactive.",
+            reason:
+              categoryResult.reason,
+            details:
+              categoryResult.missingIds ||
+              categoryResult.invalidIds ||
+              [],
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    /*
+     * =====================================
+     * SCHEDULE / PUBLISHING
+     * =====================================
+     */
+
+    const scheduledAtValue =
+      String(
+        formData.get(
+          "scheduledAt"
+        ) || ""
+      ).trim();
+
+    let scheduledAt = null;
+    let publishedAt = null;
+
+    /*
+     * -------------------------------------
+     * DRAFT
+     * -------------------------------------
+     */
+
+    if (status === "draft") {
+      scheduledAt = null;
+      publishedAt = null;
+    }
+
+    /*
+     * -------------------------------------
+     * SCHEDULED
+     * -------------------------------------
+     */
+
+    if (status === "scheduled") {
+      if (!scheduledAtValue) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code:
+                "SCHEDULED_TIME_REQUIRED",
+              message:
+                "Scheduled date and time are required.",
+            },
+          },
+          { status: 400 }
+        );
+      }
+
+      scheduledAt =
+        parseKathmanduDateTime(
+          scheduledAtValue
+        );
+
+      if (!scheduledAt) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code:
+                "INVALID_SCHEDULED_TIME",
+              message:
+                "Invalid scheduled date and time.",
+            },
+          },
+          { status: 400 }
+        );
+      }
+
+      if (
+        scheduledAt <= new Date()
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code:
+                "SCHEDULED_TIME_IN_PAST",
+              message:
+                "Scheduled time must be in the future.",
+            },
+          },
+          { status: 400 }
+        );
+      }
+
+      publishedAt = null;
+    }
+
+    /*
+     * -------------------------------------
+     * PUBLISHED
+     * -------------------------------------
+     */
+
+    if (status === "published") {
+      publishedAt = new Date();
+      scheduledAt = null;
+    }
+
+    /*
+     * -------------------------------------
+     * ARCHIVED
+     * -------------------------------------
+     */
+
+    if (status === "archived") {
+      scheduledAt = null;
+      publishedAt = null;
+    }
+
+    /*
+     * =====================================
+     * GALLERY IMAGES
+     * =====================================
+     */
+
+    let images = [];
+
+    const rawImages =
+      formData.get("images");
+
+    if (
+      typeof rawImages === "string"
+    ) {
+      try {
+        images =
+          parseGalleryImages(
+            rawImages
+          );
+      } catch (error) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code:
+                "INVALID_GALLERY_IMAGES",
+              message:
+                error.message ||
+                "Invalid gallery images data.",
+            },
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    /*
+     * =====================================
+     * GENERATE SLUG
+     * =====================================
+     */
+
+    const slug =
+      await generateUniqueSlug(
+        title,
+        null
+      );
+
+    /*
+     * =====================================
+     * CREATE NEWS DOCUMENT
+     * =====================================
+     */
+
+    const news =
+      await News.create({
+        title,
+        slug,
+        excerpt,
+        content,
+
+        coverImage,
+
+        categories:
+          categoryResult.categories,
+
+        tags,
+
+        images,
+
+        status,
+
+        featured,
+
+        breaking,
+
+        readTime,
+
+        views: 0,
+
+        scheduledAt,
+
+        publishedAt,
+      });
+
+    /*
+     * =====================================
+     * FETCH POPULATED DOCUMENT
+     * =====================================
+     */
+
+    const createdNews =
+      await News.findById(
+        news._id
+      )
+        .populate("categories")
+        .lean();
+
+    /*
+     * Normalize cover image
+     * for backward compatibility.
+     */
+
+    if (
+      typeof createdNews.coverImage ===
+      "string"
+    ) {
+      createdNews.coverImage = {
+        url:
+          createdNews.coverImage,
+        alt:
+          createdNews.imageAlt || "",
+      };
+    }
+
+    /*
+     * Normalize gallery.
+     */
+
+    createdNews.images =
+      normalizeExistingImages(
+        createdNews.images
+      );
+
+    /*
+     * =====================================
+     * SUCCESS MESSAGE
+     * =====================================
+     */
+
+    let message =
+      "News created successfully.";
+
+    if (status === "draft") {
+      message =
+        "News saved as draft.";
+    }
+
+    if (status === "scheduled") {
+      message =
+        "News scheduled successfully.";
+    }
+
+    if (status === "published") {
+      message =
+        "News published successfully.";
+    }
+
+    if (status === "archived") {
+      message =
+        "News archived successfully.";
+    }
+
+    /*
+     * =====================================
+     * RESPONSE
+     * =====================================
+     */
+
+    return NextResponse.json(
+      {
+        success: true,
+        message,
+        data: createdNews,
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error(
+      "CREATE_NEWS_ERROR:",
+      error
+    );
+
+    /*
+     * =====================================
+     * MONGOOSE VALIDATION ERROR
+     * =====================================
+     */
+
+    if (
+      error?.name ===
+      "ValidationError"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code:
+              "VALIDATION_ERROR",
+            message:
+              "News validation failed.",
+            details:
+              Object.fromEntries(
+                Object.entries(
+                  error.errors || {}
+                ).map(
+                  ([field, value]) => [
+                    field,
+                    value.message,
+                  ]
+                )
+              ),
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    /*
+     * =====================================
+     * DUPLICATE KEY
+     * =====================================
+     */
+
+    if (
+      error?.code === 11000
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code:
+              "DUPLICATE_RESOURCE",
+            message:
+              "A news article with this slug already exists.",
+          },
+        },
+        { status: 409 }
+      );
+    }
+
+    /*
+     * =====================================
+     * GENERIC ERROR
+     * =====================================
+     */
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code:
+            "CREATE_NEWS_FAILED",
+          message:
+            "Failed to create news.",
+          detail:
+            process.env.NODE_ENV ===
+            "development"
+              ? error?.message
+              : undefined,
+        },
+      },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PUT(
   request,
   { params }

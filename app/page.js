@@ -405,11 +405,11 @@ export default async function HomePage() {
         {/* =====================================================
             NOTICES
         ====================================================== */}
-        <Section
+        {/* <Section
           title="लघुवित्त सूचना"
           href="/category/notices-and-vacancy"
           news={data.notices}
-        />
+        /> */}
 
         {/* =====================================================
             NATIONAL POLICY
