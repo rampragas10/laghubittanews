@@ -1,14 +1,38 @@
+
 export default function NewsArticleSchema({
   news,
   articleUrl,
 }) {
-  const imageUrl =
-    typeof news.coverImage === "string"
-      ? news.coverImage
-      : news.coverImage?.url || "";
+  // =========================================
+  // COVER IMAGE
+  // =========================================
+
+  let imageUrl = "";
+
+  if (typeof news.coverImage === "string") {
+    imageUrl = news.coverImage;
+  } else if (
+    news.coverImage &&
+    typeof news.coverImage === "object"
+  ) {
+    imageUrl = news.coverImage.url || "";
+  }
+
+  // =========================================
+  // SITE URL
+  // =========================================
+
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "http://localhost:3000";
+
+  // =========================================
+  // SCHEMA
+  // =========================================
 
   const schema = {
     "@context": "https://schema.org",
+
     "@type": "NewsArticle",
 
     headline: news.title,
@@ -21,11 +45,15 @@ export default function NewsArticleSchema({
       : [],
 
     datePublished: news.publishedAt
-      ? new Date(news.publishedAt).toISOString()
+      ? new Date(
+          news.publishedAt
+        ).toISOString()
       : undefined,
 
     dateModified: news.updatedAt
-      ? new Date(news.updatedAt).toISOString()
+      ? new Date(
+          news.updatedAt
+        ).toISOString()
       : undefined,
 
     mainEntityOfPage: {
@@ -35,11 +63,15 @@ export default function NewsArticleSchema({
 
     publisher: {
       "@type": "Organization",
+
       name: "Laghubitta News",
+
+      url: siteUrl,
 
       logo: {
         "@type": "ImageObject",
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/logo.png`,
+
+        url: `${siteUrl}/images/logo.jpg`,
       },
     },
   };

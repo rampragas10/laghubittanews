@@ -119,7 +119,7 @@ export async function generateMetadata({ params }) {
       images: imageUrl
         ? [
             {
-              url: imageUrl,
+              url: "../../../public/images/laghubitta.jpg",
               width: 1200,
               height: 630,
               alt:
@@ -135,7 +135,7 @@ export async function generateMetadata({ params }) {
       title: news.title,
       description,
       images: imageUrl
-        ? [imageUrl]
+        ? ["../../../public/images/laghubitta.jpg"]
         : [],
     },
   };
@@ -273,6 +273,11 @@ export default async function NewsPage({ params }) {
       <Header />
 
       <main className="min-h-screen bg-gray-50">
+
+        <NewsArticleSchema
+  news={serializedNews}
+  articleUrl={articleUrl}
+/>
 
         <article className="mx-auto max-w-5xl px-4 py-10 md:px-8">
 
@@ -486,10 +491,7 @@ export default async function NewsPage({ params }) {
           />
 
         </article>
-        <NewsArticleSchema
-  news={serializedNews}
-  articleUrl={articleUrl}
-/>
+     
 
       </main>
 
