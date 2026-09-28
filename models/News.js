@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 
 const NewsSchema = new mongoose.Schema(
   {
+    // =========================================
+    // CORE NEWS DATA
+    // =========================================
+
     title: {
       type: String,
       required: true,
@@ -23,12 +27,12 @@ const NewsSchema = new mongoose.Schema(
 
     content: {
       type: String,
-      required: true,
+      default: "",
     },
 
-    // ============================================
-    // COVER IMAGE
-    // ============================================
+    // =========================================
+    // IMAGES
+    // =========================================
 
     coverImage: {
       url: {
@@ -43,10 +47,6 @@ const NewsSchema = new mongoose.Schema(
         trim: true,
       },
     },
-
-    // ============================================
-    // GALLERY IMAGES
-    // ============================================
 
     images: [
       {
@@ -67,21 +67,20 @@ const NewsSchema = new mongoose.Schema(
       },
     ],
 
-    // ============================================
+    // =========================================
     // CATEGORIES
-    // ============================================
+    // =========================================
 
     categories: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Category",
-        required: true,
       },
     ],
 
-    // ============================================
+    // =========================================
     // TAGS
-    // ============================================
+    // =========================================
 
     tags: [
       {
@@ -90,24 +89,15 @@ const NewsSchema = new mongoose.Schema(
       },
     ],
 
-    // ============================================
-    // STATUS
-    // ============================================
+    // =========================================
+    // PUBLICATION
+    // =========================================
 
     status: {
       type: String,
-      enum: [
-        "draft",
-        "scheduled",
-        "published",
-        "archived",
-      ],
+      enum: ["draft", "scheduled", "published", "archived"],
       default: "draft",
     },
-
-    // ============================================
-    // FLAGS
-    // ============================================
 
     featured: {
       type: Boolean,
@@ -119,29 +109,17 @@ const NewsSchema = new mongoose.Schema(
       default: false,
     },
 
-    // ============================================
-    // READ TIME
-    // ============================================
-
     readTime: {
       type: Number,
       default: 3,
       min: 1,
     },
 
-    // ============================================
-    // VIEWS
-    // ============================================
-
     views: {
       type: Number,
       default: 0,
       min: 0,
     },
-
-    // ============================================
-    // SCHEDULE
-    // ============================================
 
     scheduledAt: {
       type: Date,
@@ -152,6 +130,38 @@ const NewsSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    // =========================================
+    // WORDPRESS MIGRATION METADATA
+    // =========================================
+
+    wordpressId: {
+      type: Number,
+      unique: true,
+      sparse: true,
+    },
+
+    wordpressUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    originalPublishedAt: {
+      type: Date,
+      default: null,
+    },
+
+    wordpressAuthor: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    wordpressThumbnailId: {
+      type: Number,
+      default: null,
+    },
   },
 
   {
@@ -159,20 +169,49 @@ const NewsSchema = new mongoose.Schema(
   }
 );
 
-// ============================================
+// =========================================
 // INDEXES
-// ============================================
+// =========================================
 
+// Admin news page:
+// newest articles first
+NewsSchema.index({
+  createdAt: -1,
+});
+
+// Admin filtering:
+// status + newest articles first
+NewsSchema.index({
+  status: 1,
+  createdAt: -1,
+});
+
+
+
+
+
+// Scheduled news
 NewsSchema.index({
   status: 1,
   scheduledAt: 1,
 });
 
+// Frontend:
+// category + status + newest published articles
 NewsSchema.index({
   categories: 1,
   status: 1,
   publishedAt: -1,
 });
+
+// WordPress migration lookup
+NewsSchema.index({
+  wordpressUrl: 1,
+});
+
+// =========================================
+// MODEL
+// =========================================
 
 export default mongoose.models.News ||
   mongoose.model("News", NewsSchema);

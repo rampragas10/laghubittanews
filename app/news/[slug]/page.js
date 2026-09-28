@@ -1,14 +1,149 @@
 
+
+
 import { notFound } from "next/navigation";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ViewTracker from "@/components/ViewTracker";
+import ShareButtons from "@/components/ShareButtons";
 
 import { connectDB } from "@/lib/db";
 import News from "@/models/News";
+import NewsArticleSchema from "@/components/NewsArticleSchema";
 
 export const dynamic = "force-dynamic";
+
+// =====================================================
+// WEBSITE URL
+// =====================================================
+// IMPORTANT:
+// Put your real production website URL in .env:
+//
+// NEXT_PUBLIC_SITE_URL=https://yourdomain.com
+//
+// For local development you can use:
+// NEXT_PUBLIC_SITE_URL=http://localhost:3000
+// =====================================================
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  "http://localhost:3000";
+
+// =====================================================
+// Helper: Get absolute URL
+// =====================================================
+
+function getAbsoluteUrl(url) {
+  if (!url) {
+    return "";
+  }
+
+  // Already absolute
+  if (
+    url.startsWith("http://") ||
+    url.startsWith("https://")
+  ) {
+    return url;
+  }
+
+  // Relative URL
+  return `${SITE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+}
+
+// =====================================================
+// Dynamic SEO + Social Sharing Metadata
+// =====================================================
+
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+
+  await connectDB();
+
+  const news = await News.findOne({
+    slug,
+    status: "published",
+  }).lean();
+
+  if (!news) {
+    return {
+      title: "समाचार भेटिएन",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "http://localhost:3000";
+
+  const articleUrl =
+    `${siteUrl}/news/${news.slug}`;
+
+  const imageUrl =
+    typeof news.coverImage === "string"
+      ? news.coverImage
+      : news.coverImage?.url || "";
+
+  const description =
+    news.excerpt?.trim() ||
+    "लघुवित्त न्यूजबाट पछिल्लो समाचार पढ्नुहोस्।";
+
+  return {
+    title: news.title,
+
+    description,
+
+    alternates: {
+      canonical: articleUrl,
+    },
+
+    openGraph: {
+      type: "article",
+      title: news.title,
+      description,
+      url: articleUrl,
+      siteName: "Laghubitta News",
+      locale: "ne_NP",
+
+      publishedTime: news.publishedAt
+        ? new Date(news.publishedAt).toISOString()
+        : undefined,
+
+      modifiedTime: news.updatedAt
+        ? new Date(news.updatedAt).toISOString()
+        : undefined,
+
+      images: imageUrl
+        ? [
+            {
+              url: imageUrl,
+              width: 1200,
+              height: 630,
+              alt:
+                news.coverImage?.alt ||
+                news.title,
+            },
+          ]
+        : [],
+    },
+
+    twitter: {
+      card: "summary_large_image",
+      title: news.title,
+      description,
+      images: imageUrl
+        ? [imageUrl]
+        : [],
+    },
+  };
+}
+
+// =====================================================
+// NEWS PAGE
+// =====================================================
 
 export default async function NewsPage({ params }) {
   const { slug } = await params;
@@ -18,6 +153,7 @@ export default async function NewsPage({ params }) {
   // ========================================
   // Get published news
   // ========================================
+
   const news = await News.findOne({
     slug,
     status: "published",
@@ -31,16 +167,8 @@ export default async function NewsPage({ params }) {
 
   // ========================================
   // Normalize Cover Image
-  //
-  // New format:
-  // {
-  //   url: "...",
-  //   alt: "..."
-  // }
-  //
-  // Old format:
-  // "https://..."
   // ========================================
+
   let coverImage = {
     url: "",
     alt: news.title,
@@ -49,7 +177,9 @@ export default async function NewsPage({ params }) {
   if (typeof news.coverImage === "string") {
     coverImage = {
       url: news.coverImage,
-      alt: news.imageAlt || news.title,
+      alt:
+        news.imageAlt ||
+        news.title,
     };
   } else if (
     news.coverImage &&
@@ -57,6 +187,7 @@ export default async function NewsPage({ params }) {
   ) {
     coverImage = {
       url: news.coverImage.url || "",
+
       alt:
         news.coverImage.alt ||
         news.imageAlt ||
@@ -67,6 +198,7 @@ export default async function NewsPage({ params }) {
   // ========================================
   // Serialize data
   // ========================================
+
   const serializedNews = {
     ...news,
 
@@ -84,12 +216,20 @@ export default async function NewsPage({ params }) {
     images: (news.images || []).map(
       (image) => ({
         ...image,
+
         _id: image._id
           ? image._id.toString()
           : undefined,
+
         url: image.url || "",
-        alt: image.alt || news.title,
-        caption: image.caption || "",
+
+        alt:
+          image.alt ||
+          news.title,
+
+        caption:
+          image.caption ||
+          "",
       })
     ),
 
@@ -99,9 +239,16 @@ export default async function NewsPage({ params }) {
   };
 
   // ========================================
-  // DEBUG
-  // Remove later
+  // Article URL
   // ========================================
+
+  const articleUrl =
+    `${SITE_URL}/news/${serializedNews.slug}`;
+
+  // ========================================
+  // DEBUG
+  // ========================================
+
   console.log(
     "NEWS SLUG:",
     serializedNews.slug
@@ -113,26 +260,29 @@ export default async function NewsPage({ params }) {
   );
 
   console.log(
-    "COVER IMAGE URL:",
-    serializedNews.coverImage.url
+    "ARTICLE URL:",
+    articleUrl
   );
 
   // ========================================
-  // Page
+  // PAGE
   // ========================================
+
   return (
     <>
       <Header />
 
       <main className="min-h-screen bg-gray-50">
+
         <article className="mx-auto max-w-5xl px-4 py-10 md:px-8">
 
           {/* =========================
-              Categories
+              CATEGORIES
           ========================== */}
-          {serializedNews.categories.length >
-            0 && (
+
+          {serializedNews.categories.length > 0 && (
             <div className="mb-4 flex flex-wrap gap-2">
+
               {serializedNews.categories.map(
                 (category) => (
                   <span
@@ -143,19 +293,22 @@ export default async function NewsPage({ params }) {
                   </span>
                 )
               )}
+
             </div>
           )}
 
           {/* =========================
-              Title
+              TITLE
           ========================== */}
+
           <h1 className="text-3xl font-bold leading-tight text-gray-900 md:text-5xl">
             {serializedNews.title}
           </h1>
 
           {/* =========================
-              Excerpt
+              EXCERPT
           ========================== */}
+
           {serializedNews.excerpt && (
             <p className="mt-4 text-lg leading-8 text-gray-600">
               {serializedNews.excerpt}
@@ -163,9 +316,11 @@ export default async function NewsPage({ params }) {
           )}
 
           {/* =========================
-              Meta
+              META
           ========================== */}
+
           <div className="mt-5 flex flex-wrap gap-4 text-sm text-gray-500">
+
             {serializedNews.publishedAt && (
               <span>
                 {new Intl.DateTimeFormat(
@@ -191,21 +346,39 @@ export default async function NewsPage({ params }) {
             <span>
               {serializedNews.views || 0} views
             </span>
+
           </div>
+
+          {/* =========================
+              SHARE BUTTONS
+          ========================== */}
+
+          <ShareButtons
+            url={articleUrl}
+            title={serializedNews.title}
+            description={
+              serializedNews.excerpt || ""
+            }
+          />
 
           {/* =========================
               COVER IMAGE
           ========================== */}
+
           {serializedNews.coverImage.url ? (
             <div className="mt-8 overflow-hidden rounded-xl bg-gray-100">
+
               <img
-                src={serializedNews.coverImage.url}
+                src={
+                  serializedNews.coverImage.url
+                }
                 alt={
                   serializedNews.coverImage.alt ||
                   serializedNews.title
                 }
                 className="block h-auto max-h-[650px] w-full object-cover"
               />
+
             </div>
           ) : (
             <div className="mt-8 flex aspect-video items-center justify-center rounded-xl bg-gray-200 text-gray-500">
@@ -216,20 +389,25 @@ export default async function NewsPage({ params }) {
           {/* =========================
               ARTICLE CONTENT
           ========================== */}
+
           <div
             className="prose prose-lg mt-10 max-w-none"
             dangerouslySetInnerHTML={{
-              __html: serializedNews.content,
+              __html:
+                serializedNews.content,
             }}
           />
 
           {/* =========================
               GALLERY
           ========================== */}
+
           {serializedNews.images.length > 0 && (
             <div className="mt-10 grid gap-5 sm:grid-cols-2">
+
               {serializedNews.images.map(
                 (image, index) => {
+
                   if (!image.url) {
                     return null;
                   }
@@ -242,6 +420,7 @@ export default async function NewsPage({ params }) {
                       }
                       className="overflow-hidden rounded-lg bg-white"
                     >
+
                       <img
                         src={image.url}
                         alt={
@@ -256,18 +435,22 @@ export default async function NewsPage({ params }) {
                           {image.caption}
                         </figcaption>
                       )}
+
                     </figure>
                   );
                 }
               )}
+
             </div>
           )}
 
           {/* =========================
               TAGS
           ========================== */}
+
           {serializedNews.tags.length > 0 && (
             <div className="mt-10 flex flex-wrap gap-2">
+
               {serializedNews.tags.map(
                 (tag, index) => (
                   <span
@@ -278,16 +461,36 @@ export default async function NewsPage({ params }) {
                   </span>
                 )
               )}
+
             </div>
           )}
 
           {/* =========================
+              SHARE BUTTONS - BOTTOM
+          ========================== */}
+
+          {/* <ShareButtons
+            url={articleUrl}
+            title={serializedNews.title}
+            description={
+              serializedNews.excerpt || ""
+            }
+          /> */}
+
+          {/* =========================
               VIEW TRACKING
           ========================== */}
+
           <ViewTracker
             newsId={serializedNews._id}
           />
+
         </article>
+        <NewsArticleSchema
+  news={serializedNews}
+  articleUrl={articleUrl}
+/>
+
       </main>
 
       <Footer />
