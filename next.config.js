@@ -4,7 +4,18 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "laghubittanews.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "laghubittanews.vercel.app",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "res.cloudinary.com",
+        pathname: "/**",
       },
     ],
   },
