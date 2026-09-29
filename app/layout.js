@@ -2,83 +2,61 @@ import "./globals.css";
 
 export const metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ||
-      "http://localhost:3000"
+    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
   ),
 
   title: {
-    default:
-      "Laghubitta News | लघुवित्त संस्थाका ग्राहकको हित संरक्षणका लागि भएका व्यवस्थाहरु",
-    template: "%s | Laghubitta News",
+    default: "लघुवित्त न्यूज",
+    template: "%s | लघुवित्त न्यूज",
   },
 
   description:
-    "लघुवित्त न्यूज/ नेपाल राष्ट्र बैंकले लघुवित्त वित्तीय संस्थाका ग्राहकको हित संरक्षणका लागि विभिन्न व्यवस्था कायम गरेको छ। केन्द्रीय बैंकले गत पुस २३ गते लघुवित्त वित्तीय संस्था सञ्चालन मार्गदर्शन, २०८१ जारी गरेको थियो। सोही मार्गदर्शनमार्फत राष्ट्र लघुवित्त संस्थाका ग्राहकको हित संरक्षणका लागि विभिन्न व्यवस्था कायम गरेको हो।",
+    "लघुवित्त, बैंकिङ, अर्थतन्त्र, वित्तीय क्षेत्र तथा समसामयिक विषयका विश्वसनीय समाचार।",
 
   keywords: [
     "लघुवित्त",
-    "लघुवित्त समाचार",
-    "microfinance news",
+    "लघुवित्त न्यूज",
+    "microfinance news Nepal",
     "नेपाल लघुवित्त",
     "बैंकिङ समाचार",
-    "वित्तीय समाचार",
     "अर्थतन्त्र",
-    "Nepal finance news",
+    "वित्तीय समाचार",
   ],
-
-  authors: [
-    {
-      name: "Laghubitta News",
-    },
-  ],
-
-  creator: "Laghubitta News",
-
-  publisher: "Laghubitta News",
-
-  robots: {
-    index: true,
-    follow: true,
-
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
-    },
-  },
 
   openGraph: {
     type: "website",
     locale: "ne_NP",
-    url: "https://yourdomain.com",
-    siteName: "Laghubitta News | लघुवित्त तथा वित्तीय समाचार",
-    title:
-      "Laghubitta News | लघुवित्त तथा वित्तीय समाचार",
+    url: "/",
+    siteName: "लघुवित्त न्यूज",
+
+    title: "लघुवित्त न्यूज",
+
     description:
-      "लघुवित्त न्यूज/ नेपाल राष्ट्र बैंकले लघुवित्त वित्तीय संस्थाका ग्राहकको हित संरक्षणका लागि विभिन्न व्यवस्था कायम गरेको छ। केन्द्रीय बैंकले गत पुस २३ गते लघुवित्त वित्तीय संस्था सञ्चालन मार्गदर्शन, २०८१ जारी गरेको थियो। सोही मार्गदर्शनमार्फत राष्ट्र लघुवित्त संस्थाका ग्राहकको हित संरक्षणका लागि विभिन्न व्यवस्था कायम गरेको हो।",
-    image: [
+      "लघुवित्त, बैंकिङ, अर्थतन्त्र, वित्तीय क्षेत्र तथा समसामयिक विषयका विश्वसनीय समाचार।",
+
+    images: [
       {
-        url: "../../../public/images/laghubitta.jpg",
-        width: 800,
-        height: 600,
-        alt: "Laghubitta News Logo",
+        url: "/images/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "लघुवित्त न्यूज",
       },
     ],
   },
 
   twitter: {
     card: "summary_large_image",
-    title:
-      "Laghubitta News | लघुवित्त तथा वित्तीय समाचार",
+    title: "लघुवित्त न्यूज",
+
     description:
-      "लघुवित्त, बैंकिङ तथा वित्तीय क्षेत्रका पछिल्ला समाचार।",
-      images: ["../../../public/images/laghubitta.jpg"],
+      "लघुवित्त, बैंकिङ, अर्थतन्त्र, वित्तीय क्षेत्र तथा समसामयिक विषयका विश्वसनीय समाचार।",
+
+    images: ["/images/og-image.jpg"],
   },
 
-  icons: {
-    icon: "/favicon.ico",
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
