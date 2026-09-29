@@ -11,6 +11,98 @@ import News from "@/models/News";
 
 export const dynamic = "force-dynamic";
 
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  "http://localhost:3000";
+
+
+ export async function generateMetadata({ params }) {
+  const { slug } = await params;
+
+  await connectDB();
+
+  const category = await Category.findOne({
+    slug,
+    isActive: true,
+  })
+    .select("name slug description")
+    .lean();
+
+  if (!category) {
+    return {
+      title: "श्रेणी भेटिएन",
+
+      description:
+        "तपाईंले खोज्नुभएको समाचार श्रेणी भेटिएन।",
+
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const title = category.name;
+
+  const description =
+    category.description?.trim() ||
+    `${category.name} सम्बन्धी पछिल्ला समाचार तथा जानकारी।`;
+
+  const canonicalUrl =
+    `${SITE_URL}/category/${category.slug}`;
+
+  return {
+    title,
+
+    description,
+
+    alternates: {
+      canonical: canonicalUrl,
+    },
+
+    openGraph: {
+      type: "website",
+
+      locale: "ne_NP",
+
+      url: canonicalUrl,
+
+      siteName: "लघुवित्त न्यूज",
+
+      title: `${title} | लघुवित्त न्यूज`,
+
+      description,
+
+      images: [
+        {
+          url: `${SITE_URL}/images/laghubitta.jpg`,
+          width: 1200,
+          height: 630,
+          alt: "लघुवित्त न्यूज",
+        },
+      ],
+    },
+
+    twitter: {
+      card: "summary_large_image",
+
+      title: `${title} | लघुवित्त न्यूज`,
+
+      description,
+
+      images: [
+        `${SITE_URL}/images/laghubitta.jpg`,
+      ],
+    },
+
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
+
 export default async function CategoryPage({ params }) {
   const { slug } = await params;
 

@@ -1,8 +1,11 @@
-
 export default function NewsArticleSchema({
   news,
   articleUrl,
 }) {
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "http://localhost:3000";
+
   // =========================================
   // COVER IMAGE
   // =========================================
@@ -19,12 +22,20 @@ export default function NewsArticleSchema({
   }
 
   // =========================================
-  // SITE URL
+  // DEFAULT IMAGE
   // =========================================
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "http://localhost:3000";
+  if (!imageUrl) {
+    imageUrl = `${siteUrl}/images/laghubitta.jpg`;
+  }
+
+  // =========================================
+  // AUTHOR
+  // =========================================
+
+  const authorName =
+    news.wordpressAuthor?.trim() ||
+    "लघुवित्त न्यूज";
 
   // =========================================
   // SCHEMA
@@ -35,14 +46,26 @@ export default function NewsArticleSchema({
 
     "@type": "NewsArticle",
 
+    "@id": `${articleUrl}#newsarticle`,
+
+    url: articleUrl,
+
     headline: news.title,
 
     description:
-      news.excerpt || "",
+      news.excerpt?.trim() ||
+      news.title,
 
-    image: imageUrl
-      ? [imageUrl]
-      : [],
+    image: [
+      {
+        "@type": "ImageObject",
+        url: imageUrl,
+        width: 1200,
+        height: 630,
+      },
+    ],
+
+    inLanguage: "ne-NP",
 
     datePublished: news.publishedAt
       ? new Date(
@@ -54,17 +77,23 @@ export default function NewsArticleSchema({
       ? new Date(
           news.updatedAt
         ).toISOString()
-      : undefined,
+      : news.publishedAt
+        ? new Date(
+            news.publishedAt
+          ).toISOString()
+        : undefined,
 
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": articleUrl,
+    author: {
+      "@type": "Person",
+      name: authorName,
     },
 
     publisher: {
       "@type": "Organization",
 
-      name: "Laghubitta News",
+      "@id": `${siteUrl}#organization`,
+
+      name: "लघुवित्त न्यूज",
 
       url: siteUrl,
 
@@ -72,7 +101,27 @@ export default function NewsArticleSchema({
         "@type": "ImageObject",
 
         url: `${siteUrl}/images/logo.jpg`,
+
+        width: 512,
+
+        height: 512,
       },
+    },
+
+    mainEntityOfPage: {
+      "@type": "WebPage",
+
+      "@id": articleUrl,
+    },
+
+    isPartOf: {
+      "@type": "WebSite",
+
+      "@id": `${siteUrl}#website`,
+
+      name: "लघुवित्त न्यूज",
+
+      url: siteUrl,
     },
   };
 

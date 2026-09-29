@@ -7,6 +7,9 @@ import NewsCard from "@/components/NewsCard";
 import Section from "@/components/Section";
 import { getHomeNews } from "@/lib/news";
 
+import OrganizationSchema from "@/components/OrganizationSchema";
+import WebSiteSchema from "@/components/WebSiteSchema";
+
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
@@ -18,6 +21,10 @@ export default async function HomePage() {
 
   return (
     <>
+
+    <OrganizationSchema />
+
+  <WebSiteSchema />
       <Header />
 
       <main className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 md:px-8">

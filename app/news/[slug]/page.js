@@ -2,6 +2,7 @@
 
 
 import { notFound } from "next/navigation";
+import Image from "next/image";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -11,6 +12,7 @@ import ShareButtons from "@/components/ShareButtons";
 import { connectDB } from "@/lib/db";
 import News from "@/models/News";
 import NewsArticleSchema from "@/components/NewsArticleSchema";
+import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 
 export const dynamic = "force-dynamic";
 
@@ -43,12 +45,12 @@ function getAbsoluteUrl(url) {
   }
 
   // Already absolute
-  if (
-    url.startsWith("http://") ||
-    url.startsWith("https://")
-  ) {
-    return url;
-  }
+ if (
+  url.startsWith("http://") ||
+  url.startsWith("https://")
+) {
+  return url;
+}
 
   // Relative URL
   return `${SITE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
@@ -57,6 +59,225 @@ function getAbsoluteUrl(url) {
 // =====================================================
 // Dynamic SEO + Social Sharing Metadata
 // =====================================================
+
+
+// export async function generateMetadata({ params }) {
+//   const { slug } = await params;
+
+//   try {
+//     await connectDB();
+
+//     const news = await News.findOne({
+//       slug,
+//       status: "published",
+//     })
+//       .select(
+//         "title slug excerpt coverImage publishedAt updatedAt imageAlt"
+//       )
+//       .lean();
+
+//     // -----------------------------------------
+//     // NEWS NOT FOUND
+//     // -----------------------------------------
+
+//     if (!news) {
+//       return {
+//         title: "समाचार भेटिएन",
+//         description: "तपाईंले खोज्नुभएको समाचार भेटिएन।",
+
+//         openGraph: {
+//           title: "समाचार भेटिएन",
+//           description: "तपाईंले खोज्नुभएको समाचार भेटिएन।",
+//           type: "website",
+//           locale: "ne_NP",
+//           siteName: "लघुवित्त न्यूज",
+
+//           images: [
+//             {
+//               url: DEFAULT_OG_IMAGE,
+//               width: 1200,
+//               height: 630,
+//               alt: "लघुवित्त न्यूज",
+//             },
+//           ],
+//         },
+
+//         twitter: {
+//           card: "summary_large_image",
+//           title: "समाचार भेटिएन",
+//           description: "तपाईंले खोज्नुभएको समाचार भेटिएन।",
+//           images: [DEFAULT_OG_IMAGE],
+//         },
+//       };
+//     }
+
+//     // -----------------------------------------
+//     // BASIC SEO DATA
+//     // -----------------------------------------
+
+//     const title = news.title;
+
+//     const description =
+//       news.excerpt?.trim() ||
+//       `${news.title} — लघुवित्त न्यूजमा प्रकाशित समाचार।`;
+
+//     // -----------------------------------------
+//     // ARTICLE URL
+//     // -----------------------------------------
+
+//     const articleUrl =
+//       `${SITE_URL}/news/${news.slug}`;
+
+//     // -----------------------------------------
+//     // OG IMAGE
+//     // -----------------------------------------
+
+//     /*
+//       Priority:
+
+//       1. News cover image from Cloudinary
+//       2. /public/images/laghubitta.jpg
+//     */
+
+//     const imageUrl =
+//       news.coverImage?.url?.trim() ||
+//       DEFAULT_OG_IMAGE;
+
+//     // -----------------------------------------
+//     // IMAGE ALT
+//     // -----------------------------------------
+
+//     const imageAlt =
+//       news.coverImage?.alt?.trim() ||
+//       news.imageAlt?.trim() ||
+//       news.title;
+
+//     // -----------------------------------------
+//     // RETURN METADATA
+//     // -----------------------------------------
+
+//     return {
+//       title,
+
+//       description,
+
+//       alternates: {
+//         canonical: articleUrl,
+//       },
+
+//       // =======================================
+//       // OPEN GRAPH
+//       // =======================================
+
+//       openGraph: {
+//         type: "article",
+
+//         locale: "ne_NP",
+
+//         url: articleUrl,
+
+//         siteName: "लघुवित्त न्यूज",
+
+//         title,
+
+//         description,
+
+//         images: [
+//           {
+//             url: imageUrl,
+
+//             width: 1200,
+
+//             height: 630,
+
+//             alt: imageAlt,
+//           },
+//         ],
+
+//         publishedTime: news.publishedAt
+//           ? new Date(news.publishedAt).toISOString()
+//           : undefined,
+
+//         modifiedTime: news.updatedAt
+//           ? new Date(news.updatedAt).toISOString()
+//           : undefined,
+//       },
+
+//       // =======================================
+//       // TWITTER / X
+//       // =======================================
+
+//       twitter: {
+//         card: "summary_large_image",
+
+//         title,
+
+//         description,
+
+//         images: [
+//           {
+//             url: imageUrl,
+
+//             alt: imageAlt,
+//           },
+//         ],
+//       },
+//     };
+//   } catch (error) {
+//     console.error(
+//       "generateMetadata error:",
+//       error
+//     );
+
+//     // =========================================
+//     // FALLBACK METADATA
+//     // =========================================
+
+//     return {
+//       title: "लघुवित्त न्यूज",
+
+//       description:
+//         "लघुवित्त, बैंकिङ तथा वित्तीय क्षेत्रका समाचार।",
+
+//       openGraph: {
+//         type: "website",
+
+//         locale: "ne_NP",
+
+//         siteName: "लघुवित्त न्यूज",
+
+//         title: "लघुवित्त न्यूज",
+
+//         description:
+//           "लघुवित्त, बैंकिङ तथा वित्तीय क्षेत्रका समाचार।",
+
+//         images: [
+//           {
+//             url: DEFAULT_OG_IMAGE,
+
+//             width: 1200,
+
+//             height: 630,
+
+//             alt: "लघुवित्त न्यूज",
+//           },
+//         ],
+//       },
+
+//       twitter: {
+//         card: "summary_large_image",
+
+//         title: "लघुवित्त न्यूज",
+
+//         description:
+//           "लघुवित्त, बैंकिङ तथा वित्तीय क्षेत्रका समाचार।",
+
+//         images: [DEFAULT_OG_IMAGE],
+//       },
+//     };
+//   }
+// }
+
 
 
 export async function generateMetadata({ params }) {
@@ -74,85 +295,36 @@ export async function generateMetadata({ params }) {
       )
       .lean();
 
-    // -----------------------------------------
-    // NEWS NOT FOUND
-    // -----------------------------------------
-
     if (!news) {
       return {
         title: "समाचार भेटिएन",
-        description: "तपाईंले खोज्नुभएको समाचार भेटिएन।",
+        description:
+          "तपाईंले खोज्नुभएको समाचार भेटिएन।",
 
-        openGraph: {
-          title: "समाचार भेटिएन",
-          description: "तपाईंले खोज्नुभएको समाचार भेटिएन।",
-          type: "website",
-          locale: "ne_NP",
-          siteName: "लघुवित्त न्यूज",
-
-          images: [
-            {
-              url: DEFAULT_OG_IMAGE,
-              width: 1200,
-              height: 630,
-              alt: "लघुवित्त न्यूज",
-            },
-          ],
-        },
-
-        twitter: {
-          card: "summary_large_image",
-          title: "समाचार भेटिएन",
-          description: "तपाईंले खोज्नुभएको समाचार भेटिएन।",
-          images: [DEFAULT_OG_IMAGE],
+        robots: {
+          index: false,
+          follow: false,
         },
       };
     }
 
-    // -----------------------------------------
-    // BASIC SEO DATA
-    // -----------------------------------------
-
-    const title = news.title;
+    const title = news.title?.trim() || "लघुवित्त न्यूज";
 
     const description =
       news.excerpt?.trim() ||
-      `${news.title} — लघुवित्त न्यूजमा प्रकाशित समाचार।`;
-
-    // -----------------------------------------
-    // ARTICLE URL
-    // -----------------------------------------
+      `${title} — लघुवित्त न्यूजमा प्रकाशित समाचार।`;
 
     const articleUrl =
       `${SITE_URL}/news/${news.slug}`;
-
-    // -----------------------------------------
-    // OG IMAGE
-    // -----------------------------------------
-
-    /*
-      Priority:
-
-      1. News cover image from Cloudinary
-      2. /public/images/laghubitta.jpg
-    */
 
     const imageUrl =
       news.coverImage?.url?.trim() ||
       DEFAULT_OG_IMAGE;
 
-    // -----------------------------------------
-    // IMAGE ALT
-    // -----------------------------------------
-
     const imageAlt =
       news.coverImage?.alt?.trim() ||
       news.imageAlt?.trim() ||
-      news.title;
-
-    // -----------------------------------------
-    // RETURN METADATA
-    // -----------------------------------------
+      title;
 
     return {
       title,
@@ -163,9 +335,18 @@ export async function generateMetadata({ params }) {
         canonical: articleUrl,
       },
 
-      // =======================================
-      // OPEN GRAPH
-      // =======================================
+      robots: {
+        index: true,
+        follow: true,
+
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+          "max-video-preview": -1,
+        },
+      },
 
       openGraph: {
         type: "article",
@@ -183,11 +364,8 @@ export async function generateMetadata({ params }) {
         images: [
           {
             url: imageUrl,
-
             width: 1200,
-
             height: 630,
-
             alt: imageAlt,
           },
         ],
@@ -201,10 +379,6 @@ export async function generateMetadata({ params }) {
           : undefined,
       },
 
-      // =======================================
-      // TWITTER / X
-      // =======================================
-
       twitter: {
         card: "summary_large_image",
 
@@ -215,7 +389,6 @@ export async function generateMetadata({ params }) {
         images: [
           {
             url: imageUrl,
-
             alt: imageAlt,
           },
         ],
@@ -227,55 +400,19 @@ export async function generateMetadata({ params }) {
       error
     );
 
-    // =========================================
-    // FALLBACK METADATA
-    // =========================================
-
     return {
       title: "लघुवित्त न्यूज",
 
       description:
         "लघुवित्त, बैंकिङ तथा वित्तीय क्षेत्रका समाचार।",
 
-      openGraph: {
-        type: "website",
-
-        locale: "ne_NP",
-
-        siteName: "लघुवित्त न्यूज",
-
-        title: "लघुवित्त न्यूज",
-
-        description:
-          "लघुवित्त, बैंकिङ तथा वित्तीय क्षेत्रका समाचार।",
-
-        images: [
-          {
-            url: DEFAULT_OG_IMAGE,
-
-            width: 1200,
-
-            height: 630,
-
-            alt: "लघुवित्त न्यूज",
-          },
-        ],
-      },
-
-      twitter: {
-        card: "summary_large_image",
-
-        title: "लघुवित्त न्यूज",
-
-        description:
-          "लघुवित्त, बैंकिङ तथा वित्तीय क्षेत्रका समाचार।",
-
-        images: [DEFAULT_OG_IMAGE],
+      robots: {
+        index: false,
+        follow: false,
       },
     };
   }
 }
-
 // =====================================================
 // NEWS PAGE
 // =====================================================
@@ -414,8 +551,90 @@ export default async function NewsPage({ params }) {
   articleUrl={articleUrl}
 />
 
+<BreadcrumbSchema
+  items={[
+    {
+      name: "लघुवित्त न्यूज",
+      url: SITE_URL,
+    },
+
+    {
+      name: "समाचार",
+      url: `${SITE_URL}/news`,
+    },
+
+    ...(serializedNews.categories?.[0]
+      ? [
+          {
+            name:
+              serializedNews.categories[0].name,
+
+            url:
+              `${SITE_URL}/category/${serializedNews.categories[0].slug}`,
+          },
+        ]
+      : []),
+
+    {
+      name: serializedNews.title,
+      url: articleUrl,
+    },
+  ]}
+/>
+
         <article className="mx-auto max-w-5xl px-4 py-10 md:px-8">
 
+
+<nav
+  aria-label="Breadcrumb"
+  className="mb-6 text-sm text-gray-500"
+>
+  <ol className="flex flex-wrap items-center gap-2">
+    <li>
+      <a
+        href="/"
+        className="hover:text-[#005b37]"
+      >
+        गृहपृष्ठ
+      </a>
+    </li>
+
+    <li>/</li>
+
+    <li>
+      <a
+        href="/news"
+        className="hover:text-[#005b37]"
+      >
+        समाचार
+      </a>
+    </li>
+
+    {serializedNews.categories?.[0] && (
+      <>
+        <li>/</li>
+
+        <li>
+          <a
+            href={`/category/${serializedNews.categories[0].slug}`}
+            className="hover:text-[#005b37]"
+          >
+            {serializedNews.categories[0].name}
+          </a>
+        </li>
+      </>
+    )}
+
+    <li>/</li>
+
+    <li
+      className="truncate text-gray-700"
+      aria-current="page"
+    >
+      {serializedNews.title}
+    </li>
+  </ol>
+</nav>
           {/* =========================
               CATEGORIES
           ========================== */}
@@ -461,7 +680,7 @@ export default async function NewsPage({ params }) {
 
           <div className="mt-5 flex flex-wrap gap-4 text-sm text-gray-500">
 
-            {serializedNews.publishedAt && (
+            {/* {serializedNews.publishedAt && (
               <span>
                 {new Intl.DateTimeFormat(
                   "ne-NP",
@@ -475,8 +694,24 @@ export default async function NewsPage({ params }) {
                   )
                 )}
               </span>
-            )}
+            )} */}
 
+
+{serializedNews.publishedAt && (
+  <span>
+    {new Intl.DateTimeFormat(
+      "ne-NP",
+      {
+        dateStyle: "medium",
+        timeZone: "Asia/Kathmandu",
+      }
+    ).format(
+      new Date(
+        serializedNews.publishedAt
+      )
+    )}
+  </span>
+)}
             {serializedNews.readTime && (
               <span>
                 {serializedNews.readTime} min read
@@ -505,7 +740,7 @@ export default async function NewsPage({ params }) {
               COVER IMAGE
           ========================== */}
 
-          {serializedNews.coverImage.url ? (
+          {/* {serializedNews.coverImage.url ? (
             <div className="mt-8 overflow-hidden rounded-xl bg-gray-100">
 
               <img
@@ -524,8 +759,27 @@ export default async function NewsPage({ params }) {
             <div className="mt-8 flex aspect-video items-center justify-center rounded-xl bg-gray-200 text-gray-500">
               No cover image available
             </div>
-          )}
+          )} */}
 
+{serializedNews.coverImage.url ? (
+  <div className="mt-8 overflow-hidden rounded-xl bg-gray-100">
+    <Image
+      src={serializedNews.coverImage.url}
+      alt={
+        serializedNews.coverImage.alt ||
+        serializedNews.title
+      }
+      width={1200}
+      height={675}
+      priority
+      className="h-auto w-full object-cover"
+    />
+  </div>
+) : (
+  <div className="mt-8 flex aspect-video items-center justify-center rounded-xl bg-gray-200 text-gray-500">
+    No cover image available
+  </div>
+)}
           {/* =========================
               ARTICLE CONTENT
           ========================== */}

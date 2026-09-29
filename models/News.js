@@ -2,6 +2,22 @@ import mongoose from "mongoose";
 
 const NewsSchema = new mongoose.Schema(
   {
+
+
+    author: {
+  name: {
+    type: String,
+    default: "लघुवित्त न्यूज",
+    trim: true,
+  },
+
+  url: {
+    type: String,
+    default: "",
+    trim: true,
+  },
+},
+
     // =========================================
     // CORE NEWS DATA
     // =========================================
