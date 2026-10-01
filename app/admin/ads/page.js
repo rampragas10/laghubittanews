@@ -425,7 +425,7 @@ export default function AdminAdsPage() {
   return (
     <AdminShell title="Advertisements">
 
-      <div className="space-y-6">
+      <div className="space-y-6 ">
 
         {/* =================================================
             HEADER
@@ -434,9 +434,9 @@ export default function AdminAdsPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            {/* <h1 className="text-2xl font-bold text-gray-900">
               Advertisements
-            </h1>
+            </h1> */}
 
             <p className="mt-1 text-sm text-gray-500">
               Manage advertisements and control
@@ -724,15 +724,15 @@ export default function AdminAdsPage() {
 
                     <tr>
 
-                      <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      <th className="px-2 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                         Advertisement
                       </th>
 
-                      <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      <th className="px-2 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                         Position
                       </th>
 
-                      <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      <th className="px-2 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                         Status
                       </th>
 
@@ -768,7 +768,7 @@ export default function AdminAdsPage() {
 
                         {/* Advertisement */}
 
-                        <td className="px-5 py-4">
+                        <td className="px-2 py-4">
 
                           <div className="flex min-w-[260px] items-center gap-3">
 
@@ -811,7 +811,7 @@ export default function AdminAdsPage() {
 
                         {/* Position */}
 
-                        <td className="px-5 py-4">
+                        <td className="px-2 py-4">
 
                           <span className="inline-flex rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
                             {getPositionLabel(
@@ -824,7 +824,7 @@ export default function AdminAdsPage() {
 
                         {/* Status */}
 
-                        <td className="px-5 py-4">
+                        <td className="px-2 py-4">
 
                           <button
                             type="button"

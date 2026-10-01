@@ -10,17 +10,18 @@ export default function AdminShell({ title, children }) {
           <LogoutButton />
         </div>
       </header>
-      <div className="mx-auto grid max-w-7xl  grid-cols-1 gap-6 px-4 py-6 md:grid-cols-[220px_1fr] md:px-8">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-6 md:grid-cols-[220px_minmax(0,1fr)] md:px-8">
         <aside className="rounded-xl bg-white p-4 shadow-sm max-h-[calc(100vh-100px)] overflow-y-auto">
           <nav className="space-y-1 text-sm font-semibold">
             <Link className="block rounded-lg p-3 hover:bg-[#eff4ff]" href="/admin">Dashboard</Link>
             <Link className="block rounded-lg p-3 hover:bg-[#eff4ff]" href="/admin/news">News</Link>
             <Link className="block rounded-lg p-3 hover:bg-[#eff4ff]" href="/admin/news/new">Create News</Link>
             <Link className="block rounded-lg p-3 hover:bg-[#eff4ff]" href="/admin/categories">Categories</Link>
+            <Link className="block rounded-lg p-3 hover:bg-[#eff4ff]" href="/admin/ads">ADS Management</Link>
             <Link className="block rounded-lg p-3 hover:bg-[#eff4ff]" href="/">View Website</Link>
           </nav>
         </aside>
-        <main>
+        <main className="min-w-0">
           <h1 className="mb-5 text-2xl font-bold">{title}</h1>
           {children}
         </main>
