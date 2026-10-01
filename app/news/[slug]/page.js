@@ -1,3 +1,4 @@
+
 import {
   notFound,
   permanentRedirect,
@@ -9,6 +10,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ViewTracker from "@/components/ViewTracker";
 import ShareButtons from "@/components/ShareButtons";
+import AdSlot from "@/components/ads/AdSlot";
 
 import NewsArticleSchema from "@/components/NewsArticleSchema";
 import BreadcrumbSchema from "@/components/BreadcrumbSchema";
@@ -674,6 +676,17 @@ export default async function NewsPage({
 
       <main className="min-h-screen bg-white">
 
+        {/* =================================================
+            NEWS TOP AD
+        ================================================= */}
+
+        <div className="mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6 lg:px-8">
+          <AdSlot
+            position="NEWS_TOP"
+            className="w-full"
+          />
+        </div>
+
         <article className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
 
           {/* =================================================
@@ -786,8 +799,6 @@ export default async function NewsPage({
 
           <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-gray-200 pb-6 text-sm text-gray-500">
 
-            {/* AUTHOR */}
-
             <div>
               <span className="font-medium text-gray-700">
                 लेखक:
@@ -796,8 +807,6 @@ export default async function NewsPage({
                 news.wordpressAuthor ||
                 SITE_NAME}
             </div>
-
-            {/* DATE */}
 
             {news.publishedAt && (
               <time
@@ -823,16 +832,12 @@ export default async function NewsPage({
               </time>
             )}
 
-            {/* READ TIME */}
-
             {news.readTime && (
               <span>
                 पढ्न लाग्ने समय:{" "}
                 {news.readTime} मिनेट
               </span>
             )}
-
-            {/* VIEWS */}
 
             {typeof news.views ===
               "number" && (
@@ -884,6 +889,17 @@ export default async function NewsPage({
           )}
 
           {/* =================================================
+              NEWS MIDDLE AD
+          ================================================= */}
+
+          <div className="my-8">
+            <AdSlot
+              position="NEWS_MIDDLE"
+              className="w-full"
+            />
+          </div>
+
+          {/* =================================================
               ARTICLE CONTENT
           ================================================= */}
 
@@ -915,6 +931,17 @@ export default async function NewsPage({
                 news.content || "",
             }}
           />
+
+          {/* =================================================
+              NEWS BOTTOM AD
+          ================================================= */}
+
+          <div className="my-10">
+            <AdSlot
+              position="NEWS_BOTTOM"
+              className="w-full"
+            />
+          </div>
 
           {/* =================================================
               IMAGE GALLERY

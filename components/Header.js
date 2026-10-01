@@ -1,5 +1,6 @@
 import Link from "next/link";
 import DateTime from "./DateTime";
+import AdSlot from "./ads/AdSlot";
 
 const nav = [
   ["गृहपृष्ठ", "/"],
@@ -32,7 +33,10 @@ export default function Header() {
             
           </Link>
           <div className="hidden h-[90px] w-[728px] items-center justify-center rounded-lg bg-[#eff4ff] text-center text-xs text-gray-500 lg:flex">
-            विज्ञापन / Advertisement (728x90)
+            <AdSlot
+                     position="HEADER_TOP"
+                     className="w-full"
+                   />
           </div>
           {/* <Link href="/admin" className="rounded-full bg-[#005b37] p-2 text-white" title="Admin">
             ●

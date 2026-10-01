@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NewsCard from "@/components/NewsCard";
+import AdSlot from "@/components/ads/AdSlot";
 
 import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
@@ -11,13 +12,15 @@ import News from "@/models/News";
 
 export const dynamic = "force-dynamic";
 
-
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
   "http://localhost:3000";
 
+/* =====================================================
+   CATEGORY SEO METADATA
+===================================================== */
 
- export async function generateMetadata({ params }) {
+export async function generateMetadata({ params }) {
   const { slug } = await params;
 
   await connectDB();
@@ -47,10 +50,13 @@ const SITE_URL =
 
   const description =
     category.description?.trim() ||
-    `${category.name} सम्बन्धी पछिल्ला समाचार तथा जानकारी।`;
+    category.name +
+      " सम्बन्धी पछिल्ला समाचार तथा जानकारी।";
 
   const canonicalUrl =
-    `${SITE_URL}/category/${category.slug}`;
+    SITE_URL +
+    "/category/" +
+    category.slug;
 
   return {
     title,
@@ -70,15 +76,22 @@ const SITE_URL =
 
       siteName: "लघुवित्त न्यूज",
 
-      title: `${title} | लघुवित्त न्यूज`,
+      title:
+        title +
+        " | लघुवित्त न्यूज",
 
       description,
 
       images: [
         {
-          url: `${SITE_URL}/images/laghubitta.jpg`,
+          url:
+            SITE_URL +
+            "/images/laghubitta.jpg",
+
           width: 1200,
+
           height: 630,
+
           alt: "लघुवित्त न्यूज",
         },
       ],
@@ -87,12 +100,15 @@ const SITE_URL =
     twitter: {
       card: "summary_large_image",
 
-      title: `${title} | लघुवित्त न्यूज`,
+      title:
+        title +
+        " | लघुवित्त न्यूज",
 
       description,
 
       images: [
-        `${SITE_URL}/images/laghubitta.jpg`,
+        SITE_URL +
+          "/images/laghubitta.jpg",
       ],
     },
 
@@ -103,12 +119,21 @@ const SITE_URL =
   };
 }
 
-export default async function CategoryPage({ params }) {
+/* =====================================================
+   CATEGORY PAGE
+===================================================== */
+
+export default async function CategoryPage({
+  params,
+}) {
   const { slug } = await params;
 
   await connectDB();
 
-  // Find category
+  /* ===================================================
+     FIND CATEGORY
+  =================================================== */
+
   const category = await Category.findOne({
     slug,
     isActive: true,
@@ -118,7 +143,10 @@ export default async function CategoryPage({ params }) {
     notFound();
   }
 
-  // Find published news belonging to this category
+  /* ===================================================
+     FIND PUBLISHED NEWS
+  =================================================== */
+
   const news = await News.find({
     categories: category._id,
     status: "published",
@@ -129,7 +157,10 @@ export default async function CategoryPage({ params }) {
     })
     .lean();
 
-  // Convert MongoDB objects to plain objects
+  /* ===================================================
+     SERIALIZE MONGODB DATA
+  =================================================== */
+
   const serializedNews = news.map((item) => ({
     ...item,
 
@@ -148,10 +179,24 @@ export default async function CategoryPage({ params }) {
       <Header />
 
       <main className="min-h-screen bg-gray-50">
+
         <section className="mx-auto max-w-7xl px-4 py-10 md:px-8">
 
-          {/* Category Header */}
+          {/* =================================================
+              CATEGORY TOP AD
+          ================================================= */}
+
+          <AdSlot
+            position="CATEGORY_TOP"
+            className="mb-8 w-full"
+          />
+
+          {/* =================================================
+              CATEGORY HEADER
+          ================================================= */}
+
           <div className="rounded-lg bg-[#005b37] px-5 py-6 text-white">
+
             <p className="mb-1 text-sm font-medium uppercase tracking-wide opacity-80">
               Category
             </p>
@@ -165,11 +210,26 @@ export default async function CategoryPage({ params }) {
                 {category.description}
               </p>
             )}
+
           </div>
 
-          {/* News */}
+          {/* =================================================
+              CATEGORY MIDDLE AD
+          ================================================= */}
+
+          <AdSlot
+            position="CATEGORY_MIDDLE"
+            className="my-8 w-full"
+          />
+
+          {/* =================================================
+              NEWS
+          ================================================= */}
+
           {serializedNews.length === 0 ? (
-            <div className="mt-6 rounded-lg border border-gray-200 bg-white p-10 text-center">
+
+            <div className="rounded-lg border border-gray-200 bg-white p-10 text-center">
+
               <h2 className="text-xl font-semibold text-gray-900">
                 कुनै समाचार भेटिएन
               </h2>
@@ -177,19 +237,32 @@ export default async function CategoryPage({ params }) {
               <p className="mt-2 text-gray-500">
                 यस श्रेणीमा अहिले प्रकाशित समाचार उपलब्ध छैन।
               </p>
+
             </div>
+
           ) : (
-            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
               {serializedNews.map((item) => (
+
                 <NewsCard
                   key={item._id}
                   news={item}
                 />
-              ))}
-            </div>
-          )}
 
+              ))}
+
+            </div>
+
+          )}
+<AdSlot 
+          position="CATEGORY_BOTTOM"
+          className="w-full mt-8"
+        />
         </section>
+        
+
       </main>
 
       <Footer />

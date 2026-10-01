@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="mt-16 bg-[#27313f] text-white">
+    <footer className=" bg-[#27313f] text-white">
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 py-14 md:grid-cols-2 lg:grid-cols-4 md:px-8">
         <div>
           <h3 className="text-xl font-bold text-[#8cf9a9]">लघुवित्त न्युज</h3>

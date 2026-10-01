@@ -1,59 +1,66 @@
+
 import Link from "next/link";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NewsCard from "@/components/NewsCard";
+import AdSlot from "@/components/ads/AdSlot";
 
 import { connectDB } from "@/lib/db";
-import Category from "@/models/Category";
 import News from "@/models/News";
 
 export const dynamic = "force-dynamic";
 
 const NEWS_PER_PAGE = 20;
 
-/* =========================================================
-   GET NEWS
-========================================================= */
+// =========================================================
+// GET NEWS
+// =========================================================
 
 async function getNews(page) {
   await connectDB();
 
-  const skip = (page - 1) * NEWS_PER_PAGE;
+  const skip =
+    (page - 1) * NEWS_PER_PAGE;
 
   const filter = {
     status: "published",
   };
 
-  const [news, totalNews] = await Promise.all([
-    News.find(filter)
-      .select(
-        "title slug excerpt coverImage imageAlt publishedAt categories"
-      )
-      .populate("categories", "name slug")
-      .sort({
-        publishedAt: -1,
-        _id: -1,
-      })
-      .skip(skip)
-      .limit(NEWS_PER_PAGE)
-      .lean(),
+  const [news, totalNews] =
+    await Promise.all([
+      News.find(filter)
+        .select(
+          "title slug excerpt coverImage imageAlt publishedAt categories"
+        )
+        .populate(
+          "categories",
+          "name slug"
+        )
+        .sort({
+          publishedAt: -1,
+          _id: -1,
+        })
+        .skip(skip)
+        .limit(NEWS_PER_PAGE)
+        .lean(),
 
-    News.countDocuments(filter),
-  ]);
+      News.countDocuments(filter),
+    ]);
 
   return {
     news,
     totalNews,
+
     totalPages: Math.ceil(
       totalNews / NEWS_PER_PAGE
     ),
   };
 }
 
-/* =========================================================
-   PAGE
-========================================================= */
+// =========================================================
+// PAGE
+// =========================================================
 
 export default async function NewsPage({
   searchParams,
@@ -75,9 +82,9 @@ export default async function NewsPage({
     totalPages,
   } = await getNews(page);
 
-  /* =======================================================
-     INVALID PAGE
-  ======================================================= */
+  // =======================================================
+  // INVALID PAGE
+  // =======================================================
 
   if (
     page > totalPages &&
@@ -154,13 +161,28 @@ export default async function NewsPage({
 
               <p className="text-sm opacity-80">
                 जम्मा{" "}
-                {totalNews.toLocaleString("ne-NP")}{" "}
+                {totalNews.toLocaleString(
+                  "ne-NP"
+                )}{" "}
                 समाचार
               </p>
 
             </div>
 
           </div>
+
+        </section>
+
+        {/* =================================================
+            NEWS TOP AD
+        ================================================= */}
+
+        <section className="mx-auto max-w-7xl px-4 pt-6 md:px-8">
+
+          <AdSlot
+            position="NEWS_TOP"
+            className="w-full"
+          />
 
         </section>
 
@@ -200,6 +222,19 @@ export default async function NewsPage({
               </div>
 
               {/* =================================================
+                  NEWS MIDDLE AD
+              ================================================= */}
+
+              <div className="my-10">
+
+                <AdSlot
+                  position="NEWS_MIDDLE"
+                  className="w-full"
+                />
+
+              </div>
+
+              {/* =================================================
                   PAGINATION
               ================================================= */}
 
@@ -215,6 +250,19 @@ export default async function NewsPage({
 
         </section>
 
+        {/* =================================================
+            NEWS BOTTOM AD
+        ================================================= */}
+
+        <section className="mx-auto max-w-7xl px-4 pb-10 md:px-8">
+
+          <AdSlot
+            position="NEWS_BOTTOM"
+            className="w-full"
+          />
+
+        </section>
+
       </main>
 
       <Footer />
@@ -222,9 +270,9 @@ export default async function NewsPage({
   );
 }
 
-/* =========================================================
-   PAGINATION
-========================================================= */
+// =========================================================
+// PAGINATION
+// =========================================================
 
 function Pagination({
   currentPage,
@@ -284,7 +332,8 @@ function Pagination({
       {/* Page information */}
 
       <p className="mb-4 text-center text-sm text-gray-500">
-        पृष्ठ {currentPage} / {totalPages}
+        पृष्ठ {currentPage} /{" "}
+        {totalPages}
       </p>
 
       <nav
