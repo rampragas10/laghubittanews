@@ -656,12 +656,24 @@ const handleImageUpload = async (file) => {
               Banner Image
             </label>
 
-            
-<input id="advertisement-image" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml" disabled={uploading || submitting} onChange={(event) => { const selectedFile = event.target.files?.[0]; if (!selectedFile) { return; } handleImageUpload(selectedFile); event.target.value = ""; }} />
+            <input
+              id="advertisement-image"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml"
+              onChange={(event) => {
+                const file =
+                  event.target.files?.[0];
 
-    
-
-  
+                if (file) {
+                  handleImageUpload(file);
+                }
+              }}
+              disabled={
+                uploading ||
+                submitting
+              }
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-[#005b37] focus:ring-2 focus:ring-[#005b37]/10"
+            />
 
 <p className="mt-2 text-xs text-gray-500"> JPG, JPEG, PNG, WebP, GIF, AVIF or SVG. Maximum 10MB. </p>
           </div>

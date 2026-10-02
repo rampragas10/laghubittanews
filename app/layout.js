@@ -1,4 +1,4 @@
-// import "./globals.css";
+// import "../public/images/favicon.jpg";
 
 // export const metadata = {
 //   metadataBase: new URL(
@@ -87,6 +87,10 @@ export const metadata = {
 
   description:
     "लघुवित्त, बैंकिङ, अर्थतन्त्र, वित्तीय क्षेत्र तथा समसामयिक विषयका विश्वसनीय समाचार।",
+
+    icons: {
+    icon: "/images/icon.png",
+  },
 
   keywords: [
     "लघुवित्त",
